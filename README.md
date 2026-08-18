@@ -1,5 +1,7 @@
 # SaveHub.UI
 
+[![Support SaveHub](https://img.shields.io/badge/%E2%9D%A4-Support%20SaveHub-ff5f5f)](https://pay.yoco.com/savehub)
+
 Desktop (WinForms) and — soon — cross-platform (Avalonia) frontends for
 [SaveHub](https://github.com/uncle-uee/SaveHub), built on the SaveHub API packages.
 
