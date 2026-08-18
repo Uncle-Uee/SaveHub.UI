@@ -1,0 +1,89 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveHub.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="880" d:DesignHeight="600"
+             x:Class="SaveHub.Avalonia.Views.SettingsView"
+             x:DataType="vm:SettingsViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="14" Spacing="10" MaxWidth="560" HorizontalAlignment="Left">
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Provider" Width="110" VerticalAlignment="Center"/>
+                <ComboBox ItemsSource="{Binding Providers}" SelectedIndex="{Binding SelectedProviderIndex}" Width="240"/>
+            </StackPanel>
+            <TextBlock Text="{Binding ConfigPathText}" Foreground="Gray" TextWrapping="Wrap"/>
+
+            <!-- GitHub -->
+            <StackPanel IsVisible="{Binding ShowGitHub}" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Owner" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding Owner}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Repository" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding Repository}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Branch" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding Branch}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Token" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding Token}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
+                </StackPanel>
+                <CheckBox Content="Auto-merge pull requests" IsChecked="{Binding AutoMerge}" Margin="118,0,0,0"/>
+            </StackPanel>
+
+            <!-- Supabase -->
+            <StackPanel IsVisible="{Binding ShowSupabase}" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="URL" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding SupabaseUrl}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Bucket" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding SupabaseBucket}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="API key" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding SupabaseKey}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
+                </StackPanel>
+                <CheckBox Content="I own this bucket" IsChecked="{Binding SupabaseIsOwner}" Margin="118,0,0,0"/>
+            </StackPanel>
+
+            <!-- Google Drive -->
+            <StackPanel IsVisible="{Binding ShowGoogle}" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Root folder" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding GoogleRoot}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Client ID" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding GoogleClientId}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Client secret" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding GoogleSecret}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
+                </StackPanel>
+                <CheckBox Content="I own this Drive" IsChecked="{Binding GoogleIsOwner}" Margin="118,0,0,0"/>
+                <Button Content="Sign in with Google" Command="{Binding GoogleSignInCommand}" HorizontalAlignment="Left"/>
+                <TextBlock Text="{Binding GoogleStatus}" Foreground="Gray" TextWrapping="Wrap"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8" Margin="0,6,0,0">
+                <Button Content="Save" Command="{Binding SaveCommand}" MinWidth="100"/>
+                <Button Content="Test Connection" Command="{Binding TestCommand}" MinWidth="140"/>
+            </StackPanel>
+
+            <Border Margin="0,6,0,0" Padding="12" CornerRadius="4" Background="#0F000000">
+                <StackPanel Spacing="4">
+                    <TextBlock Text="About this provider" FontWeight="Bold"/>
+                    <TextBlock Text="{Binding ProviderDescription}" TextWrapping="Wrap"/>
+                </StackPanel>
+            </Border>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

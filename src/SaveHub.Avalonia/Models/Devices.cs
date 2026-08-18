@@ -1,4 +1,4 @@
-namespace SaveHub.WinForms;
+namespace SaveHub.Avalonia.Models;
 
 internal static class Devices
 {
@@ -51,8 +51,7 @@ internal static class Devices
 }
 
 /// <summary>A selectable console/handheld with its display name and SaveHub platform folder code.</summary>
-internal readonly record struct DeviceOption(string Display, string Code);
+public readonly record struct DeviceOption(string Display, string Code);
 
 /// <summary>A manufacturer and the consoles grouped under it.</summary>
 internal readonly record struct DeviceGroup(string Manufacturer, IReadOnlyList<DeviceOption> Consoles);
-

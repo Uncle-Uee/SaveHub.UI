@@ -1,0 +1,39 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveHub.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="880" d:DesignHeight="600"
+             x:Class="SaveHub.Avalonia.Views.EditView"
+             x:DataType="vm:EditViewModel">
+
+    <Grid Margin="14" ColumnDefinitions="*,12,280" RowDefinitions="Auto,*">
+        <StackPanel Grid.Row="0" Grid.Column="0" Orientation="Horizontal" Spacing="8">
+            <ComboBox ItemsSource="{Binding Systems}" SelectedItem="{Binding SelectedSystem}" Width="170" PlaceholderText="System"/>
+            <ComboBox ItemsSource="{Binding Games}" SelectedItem="{Binding SelectedGame}" Width="170" PlaceholderText="Game"/>
+            <Button Content="Refresh" Command="{Binding RefreshSystemsCommand}"/>
+        </StackPanel>
+
+        <DataGrid Grid.Row="1" Grid.Column="0" Margin="0,8,0,0"
+                  ItemsSource="{Binding Saves}" SelectedItem="{Binding SelectedSave}"
+                  IsReadOnly="True" GridLinesVisibility="All" CanUserResizeColumns="True">
+            <DataGrid.Columns>
+                <DataGridTextColumn Header="Archive" Binding="{Binding Archive}" Width="130"/>
+                <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="110"/>
+                <DataGridTextColumn Header="Description" Binding="{Binding Description}" Width="*"/>
+            </DataGrid.Columns>
+        </DataGrid>
+
+        <StackPanel Grid.Row="1" Grid.Column="2" Margin="0,8,0,0" Spacing="8">
+            <Border Height="170" Background="#22808080" CornerRadius="4">
+                <Image Source="{Binding IconBitmap}" Stretch="Uniform" Margin="6"/>
+            </Border>
+            <TextBlock Text="{Binding NameText}" TextWrapping="Wrap"/>
+            <TextBlock Text="Description" FontWeight="Bold"/>
+            <TextBox Text="{Binding Description}" AcceptsReturn="True" TextWrapping="Wrap" Height="70" MaxLength="256"/>
+            <TextBox Text="{Binding PathText}" IsReadOnly="True" PlaceholderText="No replacement selected"/>
+            <Button Content="Browse Replacement..." Command="{Binding BrowseCommand}" HorizontalAlignment="Stretch"/>
+            <Button Content="Update" Command="{Binding UpdateCommand}" HorizontalAlignment="Stretch"/>
+        </StackPanel>
+    </Grid>
+</UserControl>

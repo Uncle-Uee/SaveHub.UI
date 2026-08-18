@@ -1,0 +1,96 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveHub.Avalonia.ViewModels"
+             mc:Ignorable="d" d:DesignWidth="880" d:DesignHeight="600"
+             x:Class="SaveHub.Avalonia.Views.UploadView"
+             x:DataType="vm:UploadViewModel">
+
+    <ScrollViewer>
+        <StackPanel Margin="14" Spacing="10">
+
+            <TextBlock Text="Device" FontWeight="Bold"/>
+            <DropDownButton Content="{Binding SelectedDeviceDisplay}" MinWidth="260" HorizontalAlignment="Left">
+                <DropDownButton.Flyout>
+                    <MenuFlyout>
+                        <MenuItem Header="Nintendo">
+                            <MenuItem Header="NES" Command="{Binding SelectDeviceCommand}" CommandParameter="NES"/>
+                            <MenuItem Header="SNES" Command="{Binding SelectDeviceCommand}" CommandParameter="SNES"/>
+                            <MenuItem Header="N64" Command="{Binding SelectDeviceCommand}" CommandParameter="N64"/>
+                            <MenuItem Header="GameCube" Command="{Binding SelectDeviceCommand}" CommandParameter="GC"/>
+                            <MenuItem Header="Wii" Command="{Binding SelectDeviceCommand}" CommandParameter="WII"/>
+                            <MenuItem Header="Switch" Command="{Binding SelectDeviceCommand}" CommandParameter="SWITCH"/>
+                            <MenuItem Header="Game Boy" Command="{Binding SelectDeviceCommand}" CommandParameter="GB"/>
+                            <MenuItem Header="Game Boy Color" Command="{Binding SelectDeviceCommand}" CommandParameter="GBC"/>
+                            <MenuItem Header="GBA" Command="{Binding SelectDeviceCommand}" CommandParameter="GBA"/>
+                            <MenuItem Header="NDS" Command="{Binding SelectDeviceCommand}" CommandParameter="DS"/>
+                            <MenuItem Header="3DS" Command="{Binding SelectDeviceCommand}" CommandParameter="3DS"/>
+                            <MenuItem Header="Virtual Boy" Command="{Binding SelectDeviceCommand}" CommandParameter="VB"/>
+                        </MenuItem>
+                        <MenuItem Header="Sony">
+                            <MenuItem Header="PS1" Command="{Binding SelectDeviceCommand}" CommandParameter="PS1"/>
+                            <MenuItem Header="PS2" Command="{Binding SelectDeviceCommand}" CommandParameter="PS2"/>
+                            <MenuItem Header="PS3" Command="{Binding SelectDeviceCommand}" CommandParameter="PS3"/>
+                            <MenuItem Header="PS4" Command="{Binding SelectDeviceCommand}" CommandParameter="PS4"/>
+                            <MenuItem Header="PS5" Command="{Binding SelectDeviceCommand}" CommandParameter="PS5"/>
+                            <MenuItem Header="PSP" Command="{Binding SelectDeviceCommand}" CommandParameter="PSP"/>
+                            <MenuItem Header="PS Vita" Command="{Binding SelectDeviceCommand}" CommandParameter="PSV"/>
+                        </MenuItem>
+                        <MenuItem Header="Microsoft">
+                            <MenuItem Header="Xbox" Command="{Binding SelectDeviceCommand}" CommandParameter="XBOX"/>
+                            <MenuItem Header="Xbox 360" Command="{Binding SelectDeviceCommand}" CommandParameter="X360"/>
+                        </MenuItem>
+                        <MenuItem Header="Sega">
+                            <MenuItem Header="Genesis" Command="{Binding SelectDeviceCommand}" CommandParameter="GENESIS"/>
+                            <MenuItem Header="Dreamcast" Command="{Binding SelectDeviceCommand}" CommandParameter="DREAMCAST"/>
+                        </MenuItem>
+                        <MenuItem Header="Desktop Gaming">
+                            <MenuItem Header="PC" Command="{Binding SelectDeviceCommand}" CommandParameter="PC"/>
+                        </MenuItem>
+                    </MenuFlyout>
+                </DropDownButton.Flyout>
+            </DropDownButton>
+
+            <TextBlock Text="Save type" FontWeight="Bold"/>
+            <StackPanel Orientation="Horizontal" Spacing="16">
+                <RadioButton GroupName="saveType" Content="Save State" IsChecked="{Binding IsSaveState}"/>
+                <RadioButton GroupName="saveType" Content="Save Folder" IsChecked="{Binding IsSaveFolder}"/>
+                <RadioButton GroupName="saveType" Content="Memory Card" IsChecked="{Binding IsMemoryCard}"/>
+            </StackPanel>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <Button Content="Browse Files..." Command="{Binding BrowseCommand}"/>
+                <Button Content="Browse Folder..." Command="{Binding BrowseFolderCommand}"/>
+                <Button Content="Select Icon..." Command="{Binding SelectIconCommand}"/>
+            </StackPanel>
+            <TextBox Text="{Binding PathText}" IsReadOnly="True" PlaceholderText="No files selected"/>
+
+            <DataGrid ItemsSource="{Binding Files}" Height="248" IsReadOnly="True"
+                      GridLinesVisibility="All" CanUserResizeColumns="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220"/>
+                    <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="90"/>
+                    <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Title ID" Width="90" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding TitleId}" Width="240"/>
+                <Button Content="Detect" Command="{Binding DetectTitleIdCommand}"/>
+            </StackPanel>
+            <StackPanel Orientation="Horizontal" Spacing="8">
+                <TextBlock Text="Game Name" Width="90" VerticalAlignment="Center"/>
+                <TextBox Text="{Binding GameName}" Width="340"/>
+            </StackPanel>
+
+            <TextBlock Text="Description" FontWeight="Bold"/>
+            <TextBox Text="{Binding Description}" MaxLength="{Binding MaxDescriptionLength}"
+                     AcceptsReturn="True" TextWrapping="Wrap" Height="72"/>
+            <TextBlock Text="{Binding DescriptionCount}" HorizontalAlignment="Right" Foreground="Gray"/>
+
+            <Button Content="Upload" Command="{Binding SubmitCommand}" HorizontalAlignment="Left" MinWidth="120"/>
+        </StackPanel>
+    </ScrollViewer>
+</UserControl>

@@ -1,0 +1,49 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <ApplicationManifest>app.manifest</ApplicationManifest>
+    <AvaloniaUseCompiledBindingsByDefault>true</AvaloniaUseCompiledBindingsByDefault>
+    <AssemblyName>SaveHub</AssemblyName>
+    <Product>SaveHub</Product>
+    <AssemblyTitle>SaveHub</AssemblyTitle>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <AvaloniaResource Include="Assets\**" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Avalonia" />
+    <PackageReference Include="Avalonia.Desktop" />
+    <PackageReference Include="Avalonia.Themes.Fluent" />
+    <PackageReference Include="Avalonia.Fonts.Inter" />
+    <PackageReference Include="Avalonia.Controls.DataGrid" />
+    <PackageReference Include="AvaloniaUI.DiagnosticsSupport">
+      <IncludeAssets Condition="'$(Configuration)' != 'Debug'">None</IncludeAssets>
+      <PrivateAssets Condition="'$(Configuration)' != 'Debug'">All</PrivateAssets>
+    </PackageReference>
+    <PackageReference Include="CommunityToolkit.Mvvm" />
+  </ItemGroup>
+
+  <!-- Default: consume the published SaveHub API packages (versions in Directory.Packages.props). -->
+  <ItemGroup Condition="'$(UseLocalSaveHub)' != 'true'">
+    <PackageReference Include="SaveHub.Core" />
+    <PackageReference Include="SaveHub.Hosting" />
+    <PackageReference Include="SaveHub.GitHub" />
+    <PackageReference Include="SaveHub.Supabase" />
+    <PackageReference Include="SaveHub.GoogleDrive" />
+  </ItemGroup>
+
+  <!-- Co-dev against local API source: dotnet build -p:UseLocalSaveHub=true -->
+  <ItemGroup Condition="'$(UseLocalSaveHub)' == 'true'">
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Core\SaveHub.Core.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Hosting\SaveHub.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.GitHub\SaveHub.GitHub.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Supabase\SaveHub.Supabase.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.GoogleDrive\SaveHub.GoogleDrive.csproj" />
+  </ItemGroup>
+</Project>

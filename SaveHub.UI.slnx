@@ -1,5 +1,6 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/SaveHub.WinForms/SaveHub.WinForms.csproj" />
+    <Project Path="src/SaveHub.Avalonia/SaveHub.Avalonia.csproj" />
   </Folder>
 </Solution>

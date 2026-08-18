@@ -8,14 +8,14 @@ using SaveHub.GoogleDrive;
 using SaveHub.Hosting;
 using SaveHub.Supabase;
 
-namespace SaveHub.WinForms;
+namespace SaveHub.Avalonia.Services;
 
 /// <summary>
-/// Non-UI application logic for <see cref="MainForm"/>: client creation, backend
-/// operations, save detection, and settings persistence. The form is responsible
-/// only for presentation and delegates all of this work here (Single Responsibility).
+/// Non-UI application logic shared by the tab view models: client creation, backend
+/// operations, save detection, and settings persistence. View models are responsible
+/// only for presentation and delegate all of this work here (Single Responsibility).
 /// </summary>
-internal sealed class MainFormController
+internal sealed class AppController
 {
     /// <summary>Default GitHub repository name suggested in Settings.</summary>
     public const string DefaultGitHubRepository = "Emu-Saves-Backup";
@@ -42,7 +42,6 @@ internal sealed class MainFormController
     {
         return KnownPlatforms.IsNintendo(device);
     }
-
 
     // ---------------------------------------------------------------- Backend operations
 

@@ -71,6 +71,10 @@ internal sealed partial class UploadTab : UserControl, ITabView
         if (cb.SelectedItem is DeviceOption { Code.Length: > 0 } option)
         {
             _upDevice = option.Code;
+            if (option.Code == "PC")
+            {
+                _rbSaveFolder.Checked = true;
+            }
             _suppressDeviceChange = true;
             foreach (ComboBox other in _deviceCombos)
             {

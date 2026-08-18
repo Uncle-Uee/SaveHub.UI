@@ -1,0 +1,67 @@
+<Window xmlns="https://github.com/avaloniaui"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:vm="using:SaveHub.Avalonia.ViewModels"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="640"
+        x:Class="SaveHub.Avalonia.Views.MainWindow"
+        x:DataType="vm:MainWindowViewModel"
+        Icon="/Assets/icon.ico"
+        Width="900" Height="960"
+        CanResize="False"
+        WindowStartupLocation="CenterScreen"
+        Title="SaveHub">
+
+    <Design.DataContext>
+        <vm:MainWindowViewModel/>
+    </Design.DataContext>
+
+    <DockPanel>
+        <Menu DockPanel.Dock="Top">
+            <MenuItem Header="_File">
+                <MenuItem Header="_Quit" Command="{Binding QuitCommand}"/>
+            </MenuItem>
+            <MenuItem Header="_Tools">
+                <MenuItem Header="_Upload" Command="{Binding ShowTabCommand}" CommandParameter="0"/>
+                <MenuItem Header="_Download" Command="{Binding ShowTabCommand}" CommandParameter="1"/>
+                <MenuItem Header="_Edit" Command="{Binding ShowTabCommand}" CommandParameter="2"/>
+                <MenuItem Header="_Manage" Command="{Binding ShowTabCommand}" CommandParameter="3"/>
+                <MenuItem Header="_Settings" Command="{Binding ShowTabCommand}" CommandParameter="4"/>
+            </MenuItem>
+            <MenuItem Header="_Help">
+                <MenuItem Header="_Documentation (README)" Command="{Binding OpenReadmeCommand}"/>
+                <MenuItem Header="_Source project" Command="{Binding OpenSourceCommand}"/>
+                <MenuItem Header="Support / _Donate" Command="{Binding DonateCommand}"/>
+                <Separator/>
+                <MenuItem Header="_About SaveHub" Command="{Binding AboutCommand}"/>
+            </MenuItem>
+        </Menu>
+
+        <Border DockPanel.Dock="Bottom" BorderBrush="#33808080" BorderThickness="0,1,0,0" Padding="10,6">
+            <Grid ColumnDefinitions="*,Auto,Auto">
+                <TextBlock Grid.Column="0" Text="{Binding StatusText}" VerticalAlignment="Center" TextTrimming="CharacterEllipsis"/>
+                <ProgressBar Grid.Column="1" Width="140" Margin="10,0" IsIndeterminate="True" IsVisible="{Binding IsBusy}" VerticalAlignment="Center"/>
+                <Button Grid.Column="2" Content="❤ Donate" Command="{Binding DonateCommand}"/>
+            </Grid>
+        </Border>
+
+        <TabControl SelectedIndex="{Binding SelectedTabIndex}">
+            <TabItem Header="Upload">
+                <ContentControl Content="{Binding Upload}"/>
+            </TabItem>
+            <TabItem Header="Download">
+                <ContentControl Content="{Binding Download}"/>
+            </TabItem>
+            <TabItem Header="Edit">
+                <ContentControl Content="{Binding Edit}"/>
+            </TabItem>
+            <TabItem Header="Manage">
+                <ContentControl Content="{Binding Manage}"/>
+            </TabItem>
+            <TabItem Header="Settings">
+                <ContentControl Content="{Binding Settings}"/>
+            </TabItem>
+        </TabControl>
+    </DockPanel>
+
+</Window>

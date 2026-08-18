@@ -6,7 +6,9 @@ no API source.
 
 ## Projects
 - `src/SaveHub.WinForms` — Windows desktop app (net10.0-windows).
-- (planned) `src/SaveHub.Avalonia` — cross-platform UI (Windows/Linux/macOS/Android).
+- `src/SaveHub.Avalonia` — cross-platform desktop UI (Windows/Linux/macOS), MVVM
+  (CommunityToolkit.Mvvm). Full parity with the WinForms tabs
+  (Upload/Download/Edit/Manage/Settings). Android/Browser heads planned later.
 
 ## Referencing the API
 - Package versions are centralized in `Directory.Packages.props`.

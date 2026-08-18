@@ -1,0 +1,21 @@
+<Application xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             x:Class="SaveHub.Avalonia.App"
+             xmlns:local="using:SaveHub.Avalonia"
+             RequestedThemeVariant="Light">
+             <!-- Light matches the WinForms color scheme. Use "Dark" or "Default" (system) to change. -->
+
+    <Application.DataTemplates>
+        <local:ViewLocator/>
+    </Application.DataTemplates>
+  
+    <Application.Styles>
+        <FluentTheme />
+        <StyleInclude Source="avares://Avalonia.Controls.DataGrid/Themes/Fluent.xaml" />
+        <!-- Center label text on wide (stretched / MinWidth) buttons; a plain Button selector
+             does not match DropDownButton, so the device picker keeps its layout. -->
+        <Style Selector="Button">
+            <Setter Property="HorizontalContentAlignment" Value="Center" />
+        </Style>
+    </Application.Styles>
+</Application>

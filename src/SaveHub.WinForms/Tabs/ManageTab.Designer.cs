@@ -9,11 +9,15 @@ partial class ManageTab
     private Label _lblGame;
     private ComboBox _mgGame;
     private Button _btnRefresh;
+    private TextBox _txtGameFilter;
+    private TextBox _txtSaveFilter;
     private ListView _mgList;
     private PictureBox _mgIcon;
     private Label _mgName;
+    private Label _lblDetails;
+    private Button _btnDownload;
     private Button _btnDelete;
-    private Label _lblHint;
+    private Button _btnDeleteAll;
 
     protected override void Dispose(bool disposing)
     {
@@ -31,11 +35,15 @@ partial class ManageTab
         _lblGame = new Label();
         _mgGame = new ComboBox();
         _btnRefresh = new Button();
+        _txtGameFilter = new TextBox();
+        _txtSaveFilter = new TextBox();
         _mgList = new ListView();
         _mgIcon = new PictureBox();
         _mgName = new Label();
+        _lblDetails = new Label();
+        _btnDownload = new Button();
         _btnDelete = new Button();
-        _lblHint = new Label();
+        _btnDeleteAll = new Button();
         ((System.ComponentModel.ISupportInitialize)_mgIcon).BeginInit();
         SuspendLayout();
         //
@@ -72,37 +80,66 @@ partial class ManageTab
         _btnRefresh.Size = new Size(90, 26);
         _btnRefresh.Click += Manage_RefreshSystems;
         //
+        // _txtGameFilter
+        //
+        _txtGameFilter.Location = new Point(80, 44);
+        _txtGameFilter.Size = new Size(180, 23);
+        _txtGameFilter.PlaceholderText = "Filter games";
+        _txtGameFilter.TextChanged += GameFilter_Changed;
+        //
+        // _txtSaveFilter
+        //
+        _txtSaveFilter.Location = new Point(324, 44);
+        _txtSaveFilter.Size = new Size(200, 23);
+        _txtSaveFilter.PlaceholderText = "Filter saves";
+        _txtSaveFilter.TextChanged += SaveFilter_Changed;
+        //
         // _mgList
         //
-        _mgList.Location = new Point(12, 48);
-        _mgList.Size = new Size(600, 560);
+        _mgList.Location = new Point(12, 76);
+        _mgList.Size = new Size(600, 496);
         _mgList.MultiSelect = true;
+        _mgList.SelectedIndexChanged += Manage_SelectionChanged;
         //
         // _mgIcon
         //
-        _mgIcon.Location = new Point(620, 48);
+        _mgIcon.Location = new Point(620, 76);
         _mgIcon.Size = new Size(150, 150);
         _mgIcon.SizeMode = PictureBoxSizeMode.Zoom;
         _mgIcon.BorderStyle = BorderStyle.FixedSingle;
         //
         // _mgName
         //
-        _mgName.Location = new Point(620, 202);
-        _mgName.Size = new Size(150, 60);
+        _mgName.Location = new Point(620, 232);
+        _mgName.Size = new Size(150, 40);
         _mgName.AutoSize = false;
+        //
+        // _lblDetails
+        //
+        _lblDetails.Location = new Point(620, 280);
+        _lblDetails.Size = new Size(152, 290);
+        _lblDetails.AutoSize = false;
+        //
+        // _btnDownload
+        //
+        _btnDownload.Text = "Download Selected";
+        _btnDownload.Location = new Point(12, 584);
+        _btnDownload.Size = new Size(150, 30);
+        _btnDownload.Click += Manage_DownloadSelected;
         //
         // _btnDelete
         //
         _btnDelete.Text = "Delete Selected";
-        _btnDelete.Location = new Point(12, 616);
-        _btnDelete.Size = new Size(160, 32);
+        _btnDelete.Location = new Point(172, 584);
+        _btnDelete.Size = new Size(150, 30);
         _btnDelete.Click += Manage_DeleteSelected;
         //
-        // _lblHint
+        // _btnDeleteAll
         //
-        _lblHint.Text = "Select one or more saves and delete them. This cannot be undone.";
-        _lblHint.Location = new Point(184, 624);
-        _lblHint.AutoSize = true;
+        _btnDeleteAll.Text = "Delete All (game)";
+        _btnDeleteAll.Location = new Point(332, 584);
+        _btnDeleteAll.Size = new Size(150, 30);
+        _btnDeleteAll.Click += Manage_DeleteAll;
         //
         // ManageTab
         //
@@ -111,11 +148,15 @@ partial class ManageTab
         Controls.Add(_lblGame);
         Controls.Add(_mgGame);
         Controls.Add(_btnRefresh);
+        Controls.Add(_txtGameFilter);
+        Controls.Add(_txtSaveFilter);
         Controls.Add(_mgList);
         Controls.Add(_mgIcon);
         Controls.Add(_mgName);
+        Controls.Add(_lblDetails);
+        Controls.Add(_btnDownload);
         Controls.Add(_btnDelete);
-        Controls.Add(_lblHint);
+        Controls.Add(_btnDeleteAll);
         Size = new Size(784, 714);
         ((System.ComponentModel.ISupportInitialize)_mgIcon).EndInit();
         ResumeLayout(false);

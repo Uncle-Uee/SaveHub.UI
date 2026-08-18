@@ -66,7 +66,7 @@ internal sealed partial class SettingsTab : UserControl, ITabView
         _sbUrl.Text = sb.Url; _sbBucket.Text = sb.Bucket; _sbOwner.Checked = sb.IsOwner;
 
         GoogleDriveProviderSettings gd = settings.Google;
-        _gdRoot.Text = string.IsNullOrWhiteSpace(gd.RootFolderName) ? "SaveHub" : gd.RootFolderName;
+        _gdRoot.Text = string.IsNullOrWhiteSpace(gd.RootFolderName) ? MainFormController.DefaultGoogleFolder : gd.RootFolderName;
         _gdClientId.Text = gd.ClientId; _gdOwner.Checked = gd.IsOwner;
 
         _stProvider.SelectedIndex = settings.ActiveProviderIndex;
@@ -99,18 +99,21 @@ internal sealed partial class SettingsTab : UserControl, ITabView
         await _shell.RunBusy("Waiting for Google sign-in in your browser...", async () =>
         {
             GoogleDriveSession session = await _controller.SignInGoogleAsync();
-            string who = session.AccountEmail is null ? "" : $" as {session.AccountEmail}";
-            TimeSpan remaining = session.ExpiresAt - DateTimeOffset.Now;
-            string validFor = remaining.TotalHours >= 1
-                ? $"{(int)remaining.TotalHours}h {remaining.Minutes}m"
-                : $"{Math.Max(0, remaining.Minutes)}m";
-            _gdStatus.Text = $"Signed in{who} — token expires in {validFor} (at {session.ExpiresAt.ToLocalTime():t}); it is kept in memory only and cleared when you close SaveHub.";
+            SetGoogleStatus(session);
         });
     }
 
     private async void Settings_Test(object? sender, EventArgs e)
     {
         Settings_Save(sender, e);
+        if (SelectedProviderCode() == GoogleDriveProviderFactory.ProviderName && !_controller.GoogleHasActiveSession)
+        {
+            await _shell.RunBusy("Waiting for Google sign-in in your browser...", async () =>
+            {
+                GoogleDriveSession session = await _controller.SignInGoogleAsync();
+                SetGoogleStatus(session);
+            });
+        }
         SaveHubClient? client = _shell.RequireClient();
         if (client is null)
         {
@@ -125,5 +128,15 @@ internal sealed partial class SettingsTab : UserControl, ITabView
                 MessageBoxButtons.OK,
                 result.Success ? MessageBoxIcon.Information : MessageBoxIcon.Warning);
         });
+    }
+
+    private void SetGoogleStatus(GoogleDriveSession session)
+    {
+        string who = session.AccountEmail is null ? "" : $" as {session.AccountEmail}";
+        TimeSpan remaining = session.ExpiresAt - DateTimeOffset.Now;
+        string validFor = remaining.TotalHours >= 1
+            ? $"{(int)remaining.TotalHours}h {remaining.Minutes}m"
+            : $"{Math.Max(0, remaining.Minutes)}m";
+        _gdStatus.Text = $"Signed in{who} — token expires in {validFor} (at {session.ExpiresAt.ToLocalTime():t}); it is kept in memory only and cleared when you close SaveHub.";
     }
 }
