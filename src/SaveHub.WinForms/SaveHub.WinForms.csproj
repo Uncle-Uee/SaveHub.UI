@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <OutputType>WinExe</OutputType>
+    <TargetFramework>net10.0-windows</TargetFramework>
+    <Nullable>enable</Nullable>
+    <UseWindowsForms>true</UseWindowsForms>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <IsPackable>false</IsPackable>
+    <ApplicationIcon>..\..\assets\icon.ico</ApplicationIcon>
+    <AssemblyName>SaveHub</AssemblyName>
+    <Product>SaveHub</Product>
+    <AssemblyTitle>SaveHub</AssemblyTitle>
+  </PropertyGroup>
+
+  <!-- Default: consume the published SaveHub API packages (versions in Directory.Packages.props). -->
+  <ItemGroup Condition="'$(UseLocalSaveHub)' != 'true'">
+    <PackageReference Include="SaveHub.Core" />
+    <PackageReference Include="SaveHub.Hosting" />
+    <PackageReference Include="SaveHub.GitHub" />
+    <PackageReference Include="SaveHub.Supabase" />
+    <PackageReference Include="SaveHub.GoogleDrive" />
+  </ItemGroup>
+
+  <!-- Co-dev against local API source: dotnet build -p:UseLocalSaveHub=true -->
+  <ItemGroup Condition="'$(UseLocalSaveHub)' == 'true'">
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Core\SaveHub.Core.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Hosting\SaveHub.Hosting.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.GitHub\SaveHub.GitHub.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Supabase\SaveHub.Supabase.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.GoogleDrive\SaveHub.GoogleDrive.csproj" />
+  </ItemGroup>
+
+</Project>

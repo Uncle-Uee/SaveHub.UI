@@ -1,0 +1,245 @@
+using SaveHub.Core;
+using SaveHub.Core.Abstractions;
+using SaveHub.Core.Archiving;
+using SaveHub.Core.Configuration;
+using SaveHub.Core.Models;
+using SaveHub.GitHub;
+using SaveHub.GoogleDrive;
+using SaveHub.Hosting;
+using SaveHub.Supabase;
+
+namespace SaveHub.WinForms;
+
+/// <summary>
+/// Non-UI application logic for <see cref="MainForm"/>: client creation, backend
+/// operations, save detection, and settings persistence. The form is responsible
+/// only for presentation and delegates all of this work here (Single Responsibility).
+/// </summary>
+internal sealed class MainFormController
+{
+    // ---------------------------------------------------------------- Providers / config
+
+    public IReadOnlyList<ProviderDescriptor> Providers => SaveHubHost.Providers;
+
+    public string ConfigPath => AppServices.Store.Path;
+
+    /// <summary>Builds a client for the active provider, or returns null with a reason.</summary>
+    public SaveHubClient? TryCreateClient(out string error)
+    {
+        return AppServices.TryCreateClient(out error);
+    }
+
+    public bool IsNintendo(string device)
+    {
+        return KnownPlatforms.IsNintendo(device);
+    }
+
+
+    // ---------------------------------------------------------------- Backend operations
+
+    public Task<IReadOnlyList<string>> ListPlatformsAsync(SaveHubClient client)
+    {
+        return client.ListPlatformsAsync();
+    }
+
+    public Task<IReadOnlyList<string>> ListGamesAsync(SaveHubClient client, string system)
+    {
+        return client.ListGamesAsync(system);
+    }
+
+    public Task<IReadOnlyList<SaveEntry>> ListSavesAsync(SaveHubClient client, string system, string game)
+    {
+        return client.ListSavesAsync(system, game);
+    }
+
+    public Task<IReadOnlyDictionary<string, string>> GetGameNamesAsync(SaveHubClient client, string system)
+    {
+        return client.GetGameNamesAsync(system);
+    }
+
+    public Task<byte[]?> GetGameIconAsync(SaveHubClient client, string system, string game)
+    {
+        return client.GetGameIconAsync(system, game);
+    }
+
+    public Task<bool> DownloadArchiveToFileAsync(SaveHubClient client, string system, string game, string archive, string destination)
+    {
+        return client.DownloadArchiveToFileAsync(system, game, archive, destination);
+    }
+
+    public Task<bool> DeleteSaveAsync(SaveHubClient client, string platform, string gameId, string archive)
+    {
+        return client.DeleteSaveAsync(platform, gameId, archive);
+    }
+
+    public Task<ConnectionTestResult> TestConnectionAsync(SaveHubClient client)
+    {
+        return client.TestConnectionAsync();
+    }
+
+    public Task<SaveUploadResult> UploadAsync(SaveHubClient client, SaveUploadRequest request, UploadOptions options)
+    {
+        return client.UploadAsync(request, options);
+    }
+
+    // ---------------------------------------------------------------- Save detection
+
+    public string? DetectTitleId(string device, SaveType saveType, IReadOnlyList<string> files)
+    {
+        return GameIdResolver.DetectTitleId(device, saveType, files);
+    }
+
+    public string? DetectSaveName(string device, IReadOnlyList<string> files)
+    {
+        return SaveNameExtractor.Read(device, files);
+    }
+
+    public string? DetectMemoryCardPlatform(string file)
+    {
+        return MemoryCardReader.DetectPlatformFromFile(file);
+    }
+
+    public string? DetectFolderPlatform(IReadOnlyList<string> files)
+    {
+        return PlaystationDetector.DetectFolderPlatform(files);
+    }
+
+    public GameIdResolution Resolve(string device, SaveType saveType, IReadOnlyList<string> files, string? titleId, string? gameName)
+    {
+        return GameIdResolver.Resolve(device, saveType, files, titleId, gameName);
+    }
+
+    /// <summary>Looks up a stored game name for an existing game; best-effort (null on failure).</summary>
+    public async Task<string?> LookupExistingGameNameAsync(SaveHubClient client, string device, string titleId)
+    {
+        try
+        {
+            IReadOnlyDictionary<string, string> names = await client.GetGameNamesAsync(device);
+            if (names.TryGetValue(titleId, out string? existingName) && !string.Equals(existingName, titleId, StringComparison.OrdinalIgnoreCase))
+            {
+                return existingName;
+            }
+        }
+        catch
+        {
+            // Best-effort: ignore lookup failures.
+        }
+        return null;
+    }
+
+    // ---------------------------------------------------------------- Settings
+
+    public int ActiveProviderIndex(string activeProvider)
+    {
+        int index = SaveHubHost.Providers.ToList().FindIndex(p => p.Name == activeProvider);
+        return index >= 0 ? index : 0;
+    }
+
+    public string ProviderCodeAt(int index)
+    {
+        return index >= 0 ? SaveHubHost.Providers[index].Name : GitHubProviderFactory.ProviderName;
+    }
+
+    public SettingsSnapshot LoadSettings()
+    {
+        SaveHubConfig config = AppServices.LoadConfig();
+        GitHubProviderSettings gh = GitHubProviderFactory.ReadSettings(config) ?? new GitHubProviderSettings();
+        SupabaseProviderSettings sb = SupabaseProviderFactory.ReadSettings(config) ?? new SupabaseProviderSettings();
+        GoogleDriveProviderSettings gd = GoogleDriveProviderFactory.ReadSettings(config) ?? new GoogleDriveProviderSettings();
+
+        if (string.IsNullOrWhiteSpace(gd.RootFolderName))
+        {
+            gd.RootFolderName = "SaveHub";
+        }
+
+        return new SettingsSnapshot(gh, sb, gd, ActiveProviderIndex(config.ActiveProvider));
+    }
+
+    public void SaveGitHubSettings(string owner, string repository, string branch, bool autoMerge, string? token)
+    {
+        SaveHubConfig config = AppServices.LoadConfig();
+        GitHubProviderSettings gh = GitHubProviderFactory.ReadSettings(config) ?? new GitHubProviderSettings();
+
+        gh.Owner = owner;
+        gh.Repository = repository;
+        gh.Branch = branch;
+        gh.AutoMerge = autoMerge;
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            gh.Token = token;
+        }
+
+        GitHubProviderFactory.WriteSettings(config, gh);
+        AppServices.SaveConfig(config);
+    }
+
+    public void SaveSupabaseSettings(string url, string bucket, bool isOwner, string? apiKey)
+    {
+        SaveHubConfig config = AppServices.LoadConfig();
+        SupabaseProviderSettings sb = SupabaseProviderFactory.ReadSettings(config) ?? new SupabaseProviderSettings();
+        sb.Url = url;
+        sb.Bucket = bucket;
+        sb.IsOwner = isOwner;
+
+        if (!string.IsNullOrEmpty(apiKey))
+        {
+            sb.ApiKey = apiKey;
+        }
+
+        SupabaseProviderFactory.WriteSettings(config, sb);
+        AppServices.SaveConfig(config);
+    }
+
+    public void SaveGoogleSettings(string rootFolderName, string clientId, bool isOwner, string? clientSecret)
+    {
+        SaveHubConfig config = AppServices.LoadConfig();
+        GoogleDriveProviderSettings gd = GoogleDriveProviderFactory.ReadSettings(config) ?? new GoogleDriveProviderSettings();
+        gd.RootFolderName = string.IsNullOrWhiteSpace(rootFolderName) ? "SaveHub" : rootFolderName;
+        gd.ClientId = clientId;
+        gd.IsOwner = isOwner;
+
+        if (!string.IsNullOrEmpty(clientSecret))
+        {
+            gd.ClientSecret = clientSecret;
+        }
+
+        GoogleDriveProviderFactory.WriteSettings(config, gd);
+        AppServices.SaveConfig(config);
+    }
+
+    public Task<GoogleDriveSession> SignInGoogleAsync()
+    {
+        GoogleDriveProviderSettings settings = GoogleDriveProviderFactory.ReadSettings(AppServices.LoadConfig()) ?? new GoogleDriveProviderSettings();
+        return GoogleDriveAuthenticator.SignInAsync(settings, new GoogleDriveAuthenticator.MemoryTokenStore());
+    }
+
+    // ---------------------------------------------------------------- Pure helpers
+
+    public static string Label(SaveType saveType)
+    {
+        return SaveNaming.Label(saveType);
+    }
+
+    public static string FormatSize(long bytes)
+    {
+        string[] units = ["B", "KB", "MB", "GB"];
+        double value = bytes;
+        int unit = 0;
+
+        while (value >= 1024 && unit < units.Length - 1)
+        {
+            value /= 1024;
+            unit++;
+        }
+
+        return $"{value:0.#} {units[unit]}";
+    }
+}
+
+/// <summary>Immutable view of the persisted provider settings used to populate the Settings tab.</summary>
+internal sealed record SettingsSnapshot(
+    GitHubProviderSettings GitHub,
+    SupabaseProviderSettings Supabase,
+    GoogleDriveProviderSettings Google,
+    int ActiveProviderIndex);
