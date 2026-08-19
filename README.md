@@ -2,8 +2,15 @@
 
 [![Support SaveHub](https://img.shields.io/badge/%E2%9D%A4-Support%20SaveHub-ff5f5f)](https://pay.yoco.com/savehub)
 
-Desktop (WinForms) and cross-platform (Avalonia) frontends for
-[SaveHub](https://github.com/uncle-uee/SaveHub), built on the SaveHub API packages.
+**SaveHub.UI** provides the desktop and cross-platform front ends for
+[SaveHub](https://github.com/uncle-uee/SaveHub) — friendly apps for backing up,
+browsing, and restoring your game saves without touching the command line. They wrap
+the SaveHub API so you can push **memory cards**, **save states**, and **PC
+save-game folders** to your chosen cloud storage (**GitHub**, **Google Drive**, or
+**Supabase**) and get them back on any machine, complete with game names and cover
+art. SaveHub ships as a native Windows app (**WinForms**) and a cross-platform app
+(**Avalonia**) for Windows, Linux, and macOS, built on the shared SaveHub API
+packages.
 
 > Licensed under the **GNU General Public License v3 (GPL-3.0)** — see
 > [LICENSE](LICENSE). If SaveHub is useful to you, please consider supporting it:
