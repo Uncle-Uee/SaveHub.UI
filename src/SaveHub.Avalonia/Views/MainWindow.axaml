@@ -26,7 +26,10 @@
                 <MenuItem Header="_Download" Command="{Binding ShowTabCommand}" CommandParameter="1"/>
                 <MenuItem Header="_Edit" Command="{Binding ShowTabCommand}" CommandParameter="2"/>
                 <MenuItem Header="_Manage" Command="{Binding ShowTabCommand}" CommandParameter="3"/>
-                <MenuItem Header="_Settings" Command="{Binding ShowTabCommand}" CommandParameter="4"/>
+                <MenuItem Header="_Library" Command="{Binding ShowTabCommand}" CommandParameter="4"/>
+                <MenuItem Header="_Settings" Command="{Binding ShowTabCommand}" CommandParameter="5"/>
+                <Separator/>
+                <MenuItem Header="_Rebuild Library Index" Command="{Binding RebuildLibraryCommand}"/>
             </MenuItem>
             <MenuItem Header="_Help">
                 <MenuItem Header="_Documentation (README)" Command="{Binding OpenReadmeCommand}"/>
@@ -57,6 +60,9 @@
             </TabItem>
             <TabItem Header="Manage">
                 <ContentControl Content="{Binding Manage}"/>
+            </TabItem>
+            <TabItem Header="Library">
+                <ContentControl Content="{Binding Library}"/>
             </TabItem>
             <TabItem Header="Settings">
                 <ContentControl Content="{Binding Settings}"/>

@@ -26,6 +26,55 @@ internal sealed class DialogService : IDialogService
         return ShowDialogAsync(title, message, true);
     }
 
+    public async Task<string?> PromptAsync(string title, string message, string defaultValue)
+    {
+        TaskCompletionSource<string?> completion = new TaskCompletionSource<string?>();
+
+        Window dialog = new Window
+        {
+            Title = title,
+            Width = 420,
+            SizeToContent = SizeToContent.Height,
+            CanResize = false,
+            WindowStartupLocation = WindowStartupLocation.CenterOwner,
+            ShowInTaskbar = false,
+        };
+
+        TextBox input = new TextBox { Text = defaultValue };
+        Button okButton = new Button { Content = "OK", MinWidth = 88, IsDefault = true };
+        Button cancelButton = new Button { Content = "Cancel", MinWidth = 88, IsCancel = true };
+        okButton.Click += (_, _) =>
+        {
+            completion.TrySetResult(input.Text);
+            dialog.Close();
+        };
+        cancelButton.Click += (_, _) =>
+        {
+            completion.TrySetResult(null);
+            dialog.Close();
+        };
+
+        StackPanel buttons = new StackPanel
+        {
+            Orientation = Orientation.Horizontal,
+            HorizontalAlignment = HorizontalAlignment.Right,
+            Spacing = 8,
+        };
+        buttons.Children.Add(okButton);
+        buttons.Children.Add(cancelButton);
+
+        StackPanel root = new StackPanel { Margin = new Thickness(20), Spacing = 12 };
+        root.Children.Add(new TextBlock { Text = message, TextWrapping = TextWrapping.Wrap });
+        root.Children.Add(input);
+        root.Children.Add(buttons);
+        dialog.Content = root;
+
+        dialog.Closed += (_, _) => completion.TrySetResult(null);
+
+        await dialog.ShowDialog(_owner);
+        return await completion.Task;
+    }
+
     public async Task<IReadOnlyList<string>> OpenFilesAsync(string title, bool allowMultiple, string? filterName, IReadOnlyList<string>? patterns)
     {
         FilePickerOpenOptions options = new FilePickerOpenOptions

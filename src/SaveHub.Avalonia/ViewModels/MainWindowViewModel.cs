@@ -37,6 +37,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IShellContext
 
     public ManageViewModel Manage { get; }
 
+    public LibraryViewModel Library { get; }
+
     public SettingsViewModel Settings { get; }
 
     private IDialogService Dialogs => _dialogs ?? throw new InvalidOperationException("Dialog service not attached.");
@@ -47,8 +49,9 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IShellContext
         Download = new DownloadViewModel(_controller, this);
         Edit = new EditViewModel(_controller, this);
         Manage = new ManageViewModel(_controller, this);
+        Library = new LibraryViewModel(_controller, this);
         Settings = new SettingsViewModel(_controller, this);
-        _tabs = [Upload, Download, Edit, Manage, Settings];
+        _tabs = [Upload, Download, Edit, Manage, Library, Settings];
     }
 
     internal void AttachDialogs(IDialogService dialogs)
@@ -122,6 +125,11 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IShellContext
         return Dialogs.ConfirmAsync(title, message);
     }
 
+    public Task<string?> PromptAsync(string title, string message, string defaultValue)
+    {
+        return Dialogs.PromptAsync(title, message, defaultValue);
+    }
+
     public Task<IReadOnlyList<string>> PickFilesAsync(string title, bool allowMultiple, string? filterName, IReadOnlyList<string>? patterns)
     {
         return Dialogs.OpenFilesAsync(title, allowMultiple, filterName, patterns);
@@ -171,6 +179,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IShellContext
         {
             SelectedTabIndex = value;
         }
+    }
+
+    [RelayCommand]
+    private async Task RebuildLibrary()
+    {
+        SelectedTabIndex = 4;
+        await Library.RebuildAsync();
     }
 
     [RelayCommand]

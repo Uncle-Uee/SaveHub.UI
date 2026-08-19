@@ -1,0 +1,26 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveHub.Avalonia.ViewModels"
+             xmlns:models="using:SaveHub.Avalonia.Models"
+             mc:Ignorable="d" d:DesignWidth="880" d:DesignHeight="600"
+             x:Class="SaveHub.Avalonia.Views.LibraryView"
+             x:DataType="vm:LibraryViewModel">
+
+    <DockPanel Margin="14">
+        <StackPanel DockPanel.Dock="Top" Orientation="Horizontal" Spacing="8">
+            <Button Content="Refresh" Command="{Binding RefreshCommand}"/>
+            <Button Content="Rebuild Index" Command="{Binding RebuildCommand}"/>
+            <TextBlock Text="{Binding Summary}" VerticalAlignment="Center" Foreground="Gray"/>
+        </StackPanel>
+
+        <TreeView Margin="0,10,0,0" ItemsSource="{Binding Nodes}">
+            <TreeView.ItemTemplate>
+                <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="models:LibraryNode">
+                    <TextBlock Text="{Binding Title}"/>
+                </TreeDataTemplate>
+            </TreeView.ItemTemplate>
+        </TreeView>
+    </DockPanel>
+</UserControl>

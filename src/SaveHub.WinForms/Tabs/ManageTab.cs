@@ -8,7 +8,7 @@ internal sealed partial class ManageTab : UserControl, ITabView
 {
     private MainFormController _controller = null!;
     private IShellContext _shell = null!;
-    private readonly List<string> _allGames = new();
+    private readonly List<GameOption> _allGames = new();
     private readonly List<SaveEntry> _allSaves = new();
     private bool _suppressGameChange;
 
@@ -89,9 +89,10 @@ internal sealed partial class ManageTab : UserControl, ITabView
             _mgIcon.Image = null;
             _mgName.Text = "";
             _lblDetails.Text = "";
+            IReadOnlyDictionary<string, string> names = await _controller.GetPlatformNamesAsync(client, system);
             foreach (string game in await _controller.ListGamesAsync(client, system))
             {
-                _allGames.Add(game);
+                _allGames.Add(new GameOption(game, MainFormController.GameDisplay(game, names)));
             }
             ApplyGameFilter();
         });
@@ -100,24 +101,24 @@ internal sealed partial class ManageTab : UserControl, ITabView
     private async Task LoadManageSaves()
     {
         SaveHubClient? client = _shell.RequireClient();
-        if (client is null || _mgSystem.SelectedItem is not string system || _mgGame.SelectedItem is not string game)
+        if (client is null || _mgSystem.SelectedItem is not string system || _mgGame.SelectedItem is not GameOption game)
         {
             return;
         }
         await _shell.RunBusy("Loading saves...", async () =>
         {
             _allSaves.Clear();
-            foreach (SaveEntry s in await _controller.ListSavesAsync(client, system, game))
+            foreach (SaveEntry s in await _controller.ListSavesAsync(client, system, game.Id))
             {
                 _allSaves.Add(s);
             }
             ApplySaveFilter();
 
-            IReadOnlyDictionary<string, string> names = await _controller.GetGameNamesAsync(client, system);
-            _mgName.Text = names.TryGetValue(game, out string? n) ? $"{n}\n{game}" : game;
+            IReadOnlyDictionary<string, string> names = await _controller.GetPlatformNamesAsync(client, system);
+            _mgName.Text = names.TryGetValue(game.Id, out string? n) ? $"{n}\n{game.Id}" : game.Id;
             try
             {
-                byte[]? icon = await _controller.GetGameIconAsync(client, system, game);
+                byte[]? icon = await _controller.GetGameIconAsync(client, system, game.Id);
                 _mgIcon.Image = icon is null ? null : Image.FromStream(new MemoryStream(icon));
             }
             catch
@@ -208,7 +209,7 @@ internal sealed partial class ManageTab : UserControl, ITabView
 
     private async void Manage_DeleteAll(object? sender, EventArgs e)
     {
-        if (_allSaves.Count == 0 || _mgGame.SelectedItem is not string game)
+        if (_allSaves.Count == 0 || _mgGame.SelectedItem is not GameOption game)
         {
             _shell.Warn("Select a game with saves first.");
             return;
@@ -216,7 +217,7 @@ internal sealed partial class ManageTab : UserControl, ITabView
         List<SaveEntry> entries = _allSaves.ToList();
 
         DialogResult confirm = MessageBox.Show(this,
-            $"Delete ALL {entries.Count} save(s) for {game}? This cannot be undone.",
+            $"Delete ALL {entries.Count} save(s) for {game.Display}? This cannot be undone.",
             "Confirm delete", MessageBoxButtons.YesNo, MessageBoxIcon.Warning);
         if (confirm != DialogResult.Yes)
         {
@@ -235,8 +236,41 @@ internal sealed partial class ManageTab : UserControl, ITabView
             {
                 await _controller.DeleteSaveAsync(client, entry.Platform, entry.GameId, entry.ArchiveName);
             }
-            _shell.SetStatus($"Deleted all {entries.Count} save(s) for {game}.");
+            _shell.SetStatus($"Deleted all {entries.Count} save(s) for {game.Display}.");
             await LoadManageSaves();
+        });
+    }
+
+    private async void Manage_Rename(object? sender, EventArgs e)
+    {
+        if (_mgSystem.SelectedItem is not string system || _mgGame.SelectedItem is not GameOption game)
+        {
+            _shell.Warn("Select a game to rename first.");
+            return;
+        }
+        int idx = game.Display.LastIndexOf(" (", StringComparison.Ordinal);
+        string suggested = idx > 0 ? game.Display[..idx] : string.Empty;
+        string? input = UiHelpers.Prompt(this, "Rename game", $"Display name for {game.Id}:", suggested);
+        if (input is null)
+        {
+            return;
+        }
+        string name = input.Trim();
+        if (name.Length == 0)
+        {
+            _shell.Warn("Enter a name.");
+            return;
+        }
+        SaveHubClient? client = _shell.RequireClient();
+        if (client is null)
+        {
+            return;
+        }
+        await _shell.RunBusy("Renaming...", async () =>
+        {
+            await _controller.SetGameNameAsync(client, system, game.Id, name);
+            _shell.SetStatus($"Renamed {game.Id} to {name}.");
+            await LoadManageGames();
         });
     }
 
@@ -266,12 +300,14 @@ internal sealed partial class ManageTab : UserControl, ITabView
     private void ApplyGameFilter()
     {
         string filter = _txtGameFilter.Text.Trim();
-        string? current = _mgGame.SelectedItem as string;
+        GameOption? current = _mgGame.SelectedItem as GameOption;
         _suppressGameChange = true;
         _mgGame.Items.Clear();
-        foreach (string game in _allGames)
+        foreach (GameOption game in _allGames)
         {
-            if (filter.Length == 0 || game.Contains(filter, StringComparison.OrdinalIgnoreCase))
+            if (filter.Length == 0 ||
+                game.Id.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                game.Display.Contains(filter, StringComparison.OrdinalIgnoreCase))
             {
                 _mgGame.Items.Add(game);
             }

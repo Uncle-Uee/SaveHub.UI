@@ -66,6 +66,52 @@ internal sealed class MainFormController
         return client.GetGameNamesAsync(system);
     }
 
+    /// <summary>
+    /// Game names for a platform, read from the on-disk library cache when present; otherwise fetched
+    /// once from the backend and written to the cache. Avoids repeated per-platform network reads.
+    /// </summary>
+    public async Task<IReadOnlyDictionary<string, string>> GetPlatformNamesAsync(SaveHubClient client, string platform)
+    {
+        LibraryIndex cache = LoadLocalLibrary();
+        IReadOnlyDictionary<string, string> cached = cache.ForPlatform(platform);
+        if (cached.Count > 0)
+        {
+            return cached;
+        }
+
+        IReadOnlyDictionary<string, string> fresh = await client.GetGameNamesAsync(platform);
+        foreach (KeyValuePair<string, string> entry in fresh)
+        {
+            cache.Set(platform, entry.Key, entry.Value);
+        }
+        SaveLocalLibrary(cache);
+        return fresh;
+    }
+
+    /// <summary>Updates a single game's name in the on-disk library cache (best-effort).</summary>
+    public void CacheGameName(string platform, string gameId, string? name)
+    {
+        LibraryIndex cache = LoadLocalLibrary();
+        cache.Set(platform, gameId, string.IsNullOrWhiteSpace(name) ? gameId : name.Trim());
+        SaveLocalLibrary(cache);
+    }
+
+    public Task<LibraryIndex> GetLibraryIndexAsync(SaveHubClient client)
+    {
+        return client.GetLibraryIndexAsync();
+    }
+
+    public Task<LibraryIndex> RebuildLibraryIndexAsync(SaveHubClient client)
+    {
+        return client.RebuildLibraryIndexAsync();
+    }
+
+    public async Task SetGameNameAsync(SaveHubClient client, string platform, string gameId, string name)
+    {
+        await client.SetGameNameAsync(platform, gameId, name);
+        CacheGameName(platform, gameId, name);
+    }
+
     public Task<byte[]?> GetGameIconAsync(SaveHubClient client, string system, string game)
     {
         return client.GetGameIconAsync(system, game);
@@ -232,6 +278,50 @@ internal sealed class MainFormController
     public static string Label(SaveType saveType)
     {
         return SaveNaming.Label(saveType);
+    }
+
+    /// <summary>Formats a game as "Name (id)" when a distinct name is known, else just the id.</summary>
+    public static string GameDisplay(string gameId, IReadOnlyDictionary<string, string> names)
+    {
+        return names.TryGetValue(gameId, out string? name) && !string.Equals(name, gameId, StringComparison.OrdinalIgnoreCase)
+            ? $"{name} ({gameId})"
+            : gameId;
+    }
+
+    private static string LocalLibraryPath => Path.Combine(
+        Path.GetDirectoryName(AppServices.Store.Path) ?? ".", "library-cache.json");
+
+    /// <summary>Loads the locally cached library index (empty when absent or unreadable).</summary>
+    public LibraryIndex LoadLocalLibrary()
+    {
+        try
+        {
+            return File.Exists(LocalLibraryPath)
+                ? LibraryIndex.Deserialize(File.ReadAllBytes(LocalLibraryPath))
+                : new LibraryIndex();
+        }
+        catch
+        {
+            return new LibraryIndex();
+        }
+    }
+
+    /// <summary>Writes the library index to the local cache (best-effort).</summary>
+    public void SaveLocalLibrary(LibraryIndex index)
+    {
+        try
+        {
+            string? dir = Path.GetDirectoryName(LocalLibraryPath);
+            if (!string.IsNullOrEmpty(dir))
+            {
+                Directory.CreateDirectory(dir);
+            }
+            File.WriteAllBytes(LocalLibraryPath, index.Serialize());
+        }
+        catch
+        {
+            // Best-effort local cache.
+        }
     }
 
     public static string FormatSize(long bytes)

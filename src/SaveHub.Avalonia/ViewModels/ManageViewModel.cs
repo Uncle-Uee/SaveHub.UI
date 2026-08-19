@@ -16,14 +16,14 @@ public sealed partial class ManageViewModel : ViewModelBase
     private readonly AppController _controller;
     private readonly IShellContext _shell;
     private readonly List<SaveRow> _selected = [];
-    private readonly List<string> _allGames = [];
+    private readonly List<GameOption> _allGames = [];
     private readonly List<SaveRow> _allSaves = [];
 
     [ObservableProperty]
     private string? _selectedSystem;
 
     [ObservableProperty]
-    private string? _selectedGame;
+    private GameOption? _selectedGame;
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(HasSelection))]
@@ -47,7 +47,7 @@ public sealed partial class ManageViewModel : ViewModelBase
 
     public ObservableCollection<string> Systems { get; } = [];
 
-    public ObservableCollection<string> Games { get; } = [];
+    public ObservableCollection<GameOption> Games { get; } = [];
 
     public ObservableCollection<SaveRow> Saves { get; } = [];
 
@@ -159,7 +159,7 @@ public sealed partial class ManageViewModel : ViewModelBase
     [RelayCommand]
     private async Task DeleteAll()
     {
-        if (_allSaves.Count == 0 || SelectedGame is not string game)
+        if (_allSaves.Count == 0 || SelectedGame is not { } game)
         {
             await _shell.WarnAsync("Select a game with saves first.");
             return;
@@ -167,7 +167,7 @@ public sealed partial class ManageViewModel : ViewModelBase
         List<SaveEntry> entries = _allSaves.Select(r => r.Entry).ToList();
 
         bool confirm = await _shell.ConfirmAsync("Confirm delete",
-            $"Delete ALL {entries.Count} save(s) for {game}? This cannot be undone.");
+            $"Delete ALL {entries.Count} save(s) for {game.Display}? This cannot be undone.");
         if (!confirm)
         {
             return;
@@ -185,8 +185,42 @@ public sealed partial class ManageViewModel : ViewModelBase
             {
                 await _controller.DeleteSaveAsync(client, entry.Platform, entry.GameId, entry.ArchiveName);
             }
-            _shell.SetStatus($"Deleted all {entries.Count} save(s) for {game}.");
+            _shell.SetStatus($"Deleted all {entries.Count} save(s) for {game.Display}.");
             await LoadManageSaves();
+        });
+    }
+
+    [RelayCommand]
+    private async Task RenameGame()
+    {
+        if (SelectedSystem is not string system || SelectedGame is not { } game)
+        {
+            await _shell.WarnAsync("Select a game to rename first.");
+            return;
+        }
+        int idx = game.Display.LastIndexOf(" (", StringComparison.Ordinal);
+        string suggested = idx > 0 ? game.Display[..idx] : string.Empty;
+        string? input = await _shell.PromptAsync("Rename game", $"Display name for {game.Id}:", suggested);
+        if (input is null)
+        {
+            return;
+        }
+        string name = input.Trim();
+        if (name.Length == 0)
+        {
+            await _shell.WarnAsync("Enter a name.");
+            return;
+        }
+        SaveHubClient? client = await _shell.RequireClientAsync();
+        if (client is null)
+        {
+            return;
+        }
+        await _shell.RunBusy("Renaming...", async () =>
+        {
+            await _controller.SetGameNameAsync(client, system, game.Id, name);
+            _shell.SetStatus($"Renamed {game.Id} to {name}.");
+            await LoadManageGames();
         });
     }
 
@@ -195,7 +229,7 @@ public sealed partial class ManageViewModel : ViewModelBase
         SaveHubClient? client = _shell.TryCreateClient();
         if (client is null)
         {
-            _shell.SetStatus("No storage provider is ready — open Settings to configure or sign in.");
+            _shell.SetStatus(NoProviderMessage);
             return;
         }
         await _shell.RunBusy("Loading systems...", async () =>
@@ -227,9 +261,10 @@ public sealed partial class ManageViewModel : ViewModelBase
             Saves.Clear();
             IconBitmap = null;
             NameText = string.Empty;
+            IReadOnlyDictionary<string, string> names = await _controller.GetPlatformNamesAsync(client, system);
             foreach (string game in await _controller.ListGamesAsync(client, system))
             {
-                _allGames.Add(game);
+                _allGames.Add(new GameOption(game, AppController.GameDisplay(game, names)));
             }
             ApplyGameFilter();
         });
@@ -238,24 +273,24 @@ public sealed partial class ManageViewModel : ViewModelBase
     private async Task LoadManageSaves()
     {
         SaveHubClient? client = _shell.TryCreateClient();
-        if (client is null || SelectedSystem is not string system || SelectedGame is not string game)
+        if (client is null || SelectedSystem is not string system || SelectedGame is not { } game)
         {
             return;
         }
         await _shell.RunBusy("Loading saves...", async () =>
         {
             _allSaves.Clear();
-            foreach (SaveEntry s in await _controller.ListSavesAsync(client, system, game))
+            foreach (SaveEntry s in await _controller.ListSavesAsync(client, system, game.Id))
             {
                 _allSaves.Add(new SaveRow(s.ArchiveName, AppController.Label(s.SaveType), s.Description ?? string.Empty, s));
             }
             ApplySaveFilter();
 
-            IReadOnlyDictionary<string, string> names = await _controller.GetGameNamesAsync(client, system);
-            NameText = names.TryGetValue(game, out string? n) ? $"{n}\n{game}" : game;
+            IReadOnlyDictionary<string, string> names = await _controller.GetPlatformNamesAsync(client, system);
+            NameText = names.TryGetValue(game.Id, out string? n) ? $"{n}\n{game.Id}" : game.Id;
             try
             {
-                byte[]? icon = await _controller.GetGameIconAsync(client, system, game);
+                byte[]? icon = await _controller.GetGameIconAsync(client, system, game.Id);
                 IconBitmap = icon is null ? null : new Bitmap(new MemoryStream(icon));
             }
             catch
@@ -270,7 +305,7 @@ public sealed partial class ManageViewModel : ViewModelBase
         _ = LoadManageGames();
     }
 
-    partial void OnSelectedGameChanged(string? value)
+    partial void OnSelectedGameChanged(GameOption? value)
     {
         _ = LoadManageSaves();
     }
@@ -289,9 +324,11 @@ public sealed partial class ManageViewModel : ViewModelBase
     {
         string filter = GameFilter.Trim();
         Games.Clear();
-        foreach (string game in _allGames)
+        foreach (GameOption game in _allGames)
         {
-            if (filter.Length == 0 || game.Contains(filter, StringComparison.OrdinalIgnoreCase))
+            if (filter.Length == 0 ||
+                game.Id.Contains(filter, StringComparison.OrdinalIgnoreCase) ||
+                game.Display.Contains(filter, StringComparison.OrdinalIgnoreCase))
             {
                 Games.Add(game);
             }

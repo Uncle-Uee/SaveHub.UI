@@ -18,6 +18,7 @@ partial class ManageTab
     private Button _btnDownload;
     private Button _btnDelete;
     private Button _btnDeleteAll;
+    private Button _btnRename;
 
     protected override void Dispose(bool disposing)
     {
@@ -44,6 +45,7 @@ partial class ManageTab
         _btnDownload = new Button();
         _btnDelete = new Button();
         _btnDeleteAll = new Button();
+        _btnRename = new Button();
         ((System.ComponentModel.ISupportInitialize)_mgIcon).BeginInit();
         SuspendLayout();
         //
@@ -141,6 +143,13 @@ partial class ManageTab
         _btnDeleteAll.Size = new Size(150, 30);
         _btnDeleteAll.Click += Manage_DeleteAll;
         //
+        // _btnRename
+        //
+        _btnRename.Text = "Rename Game";
+        _btnRename.Location = new Point(492, 584);
+        _btnRename.Size = new Size(150, 30);
+        _btnRename.Click += Manage_Rename;
+        //
         // ManageTab
         //
         Controls.Add(_lblSystem);
@@ -157,6 +166,7 @@ partial class ManageTab
         Controls.Add(_btnDownload);
         Controls.Add(_btnDelete);
         Controls.Add(_btnDeleteAll);
+        Controls.Add(_btnRename);
         Size = new Size(784, 714);
         ((System.ComponentModel.ISupportInitialize)_mgIcon).EndInit();
         ResumeLayout(false);

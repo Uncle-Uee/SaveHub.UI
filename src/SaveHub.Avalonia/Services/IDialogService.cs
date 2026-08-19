@@ -7,6 +7,8 @@ internal interface IDialogService
 
     Task<bool> ConfirmAsync(string title, string message);
 
+    Task<string?> PromptAsync(string title, string message, string defaultValue);
+
     Task<IReadOnlyList<string>> OpenFilesAsync(string title, bool allowMultiple, string? filterName, IReadOnlyList<string>? patterns);
 
     Task<string?> OpenFolderAsync(string title);

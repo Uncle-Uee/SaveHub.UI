@@ -221,6 +221,11 @@ public sealed partial class UploadViewModel : ViewModelBase
             SaveUploadResult result = await _controller.UploadAsync(client, request, new UploadOptions());
             await _shell.ShowResultAsync(result);
 
+            if (result.Merged)
+            {
+                _controller.CacheGameName(_upDevice, gameId, gameName.Length == 0 ? null : gameName);
+            }
+
             if (_controller.IsNintendo(_upDevice) && _upIconPath is null)
             {
                 _shell.SetStatus($"Uploaded. No cover art for {gameId} — add one later via Select Icon or the Edit tab.");

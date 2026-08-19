@@ -84,9 +84,10 @@ internal sealed partial class EditTab : UserControl, ITabView
         {
             _edGame.Items.Clear();
             _edList.Items.Clear();
+            IReadOnlyDictionary<string, string> names = await _controller.GetPlatformNamesAsync(client, system);
             foreach (string game in await _controller.ListGamesAsync(client, system))
             {
-                _edGame.Items.Add(game);
+                _edGame.Items.Add(new GameOption(game, MainFormController.GameDisplay(game, names)));
             }
         });
     }
@@ -94,23 +95,23 @@ internal sealed partial class EditTab : UserControl, ITabView
     private async Task LoadEditSaves()
     {
         SaveHubClient? client = _shell.RequireClient();
-        if (client is null || _edSystem.SelectedItem is not string system || _edGame.SelectedItem is not string game)
+        if (client is null || _edSystem.SelectedItem is not string system || _edGame.SelectedItem is not GameOption game)
         {
             return;
         }
         await _shell.RunBusy("Loading saves...", async () =>
         {
             _edList.Items.Clear();
-            foreach (SaveEntry s in await _controller.ListSavesAsync(client, system, game))
+            foreach (SaveEntry s in await _controller.ListSavesAsync(client, system, game.Id))
             {
                 _edList.Items.Add(new ListViewItem([s.ArchiveName, MainFormController.Label(s.SaveType), s.Description ?? ""]) { Tag = s });
             }
 
-            IReadOnlyDictionary<string, string> names = await _controller.GetGameNamesAsync(client, system);
-            _edName.Text = names.TryGetValue(game, out string? n) ? $"{n}\n{game}" : game;
+            IReadOnlyDictionary<string, string> names = await _controller.GetPlatformNamesAsync(client, system);
+            _edName.Text = names.TryGetValue(game.Id, out string? n) ? $"{n}\n{game.Id}" : game.Id;
             try
             {
-                byte[]? icon = await _controller.GetGameIconAsync(client, system, game);
+                byte[]? icon = await _controller.GetGameIconAsync(client, system, game.Id);
                 _edIcon.Image = icon is null ? null : Image.FromStream(new MemoryStream(icon));
             }
             catch

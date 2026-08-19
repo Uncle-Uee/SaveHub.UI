@@ -25,7 +25,7 @@ public sealed partial class EditViewModel : ViewModelBase
     private string? _selectedSystem;
 
     [ObservableProperty]
-    private string? _selectedGame;
+    private GameOption? _selectedGame;
 
     [ObservableProperty]
     private SaveRow? _selectedSave;
@@ -44,7 +44,7 @@ public sealed partial class EditViewModel : ViewModelBase
 
     public ObservableCollection<string> Systems { get; } = [];
 
-    public ObservableCollection<string> Games { get; } = [];
+    public ObservableCollection<GameOption> Games { get; } = [];
 
     public ObservableCollection<SaveRow> Saves { get; } = [];
 
@@ -153,7 +153,7 @@ public sealed partial class EditViewModel : ViewModelBase
         SaveHubClient? client = _shell.TryCreateClient();
         if (client is null)
         {
-            _shell.SetStatus("No storage provider is ready — open Settings to configure or sign in.");
+            _shell.SetStatus(NoProviderMessage);
             return;
         }
         await _shell.RunBusy("Loading systems...", async () =>
@@ -182,9 +182,10 @@ public sealed partial class EditViewModel : ViewModelBase
         {
             Games.Clear();
             Saves.Clear();
+            IReadOnlyDictionary<string, string> names = await _controller.GetPlatformNamesAsync(client, system);
             foreach (string game in await _controller.ListGamesAsync(client, system))
             {
-                Games.Add(game);
+                Games.Add(new GameOption(game, AppController.GameDisplay(game, names)));
             }
         });
     }
@@ -192,23 +193,23 @@ public sealed partial class EditViewModel : ViewModelBase
     private async Task LoadEditSaves()
     {
         SaveHubClient? client = _shell.TryCreateClient();
-        if (client is null || SelectedSystem is not string system || SelectedGame is not string game)
+        if (client is null || SelectedSystem is not string system || SelectedGame is not { } game)
         {
             return;
         }
         await _shell.RunBusy("Loading saves...", async () =>
         {
             Saves.Clear();
-            foreach (SaveEntry s in await _controller.ListSavesAsync(client, system, game))
+            foreach (SaveEntry s in await _controller.ListSavesAsync(client, system, game.Id))
             {
                 Saves.Add(new SaveRow(s.ArchiveName, AppController.Label(s.SaveType), s.Description ?? string.Empty, s));
             }
 
-            IReadOnlyDictionary<string, string> names = await _controller.GetGameNamesAsync(client, system);
-            NameText = names.TryGetValue(game, out string? n) ? $"{n}\n{game}" : game;
+            IReadOnlyDictionary<string, string> names = await _controller.GetPlatformNamesAsync(client, system);
+            NameText = names.TryGetValue(game.Id, out string? n) ? $"{n}\n{game.Id}" : game.Id;
             try
             {
-                byte[]? icon = await _controller.GetGameIconAsync(client, system, game);
+                byte[]? icon = await _controller.GetGameIconAsync(client, system, game.Id);
                 IconBitmap = icon is null ? null : new Bitmap(new MemoryStream(icon));
             }
             catch
@@ -223,7 +224,7 @@ public sealed partial class EditViewModel : ViewModelBase
         _ = LoadEditGames();
     }
 
-    partial void OnSelectedGameChanged(string? value)
+    partial void OnSelectedGameChanged(GameOption? value)
     {
         _ = LoadEditSaves();
     }

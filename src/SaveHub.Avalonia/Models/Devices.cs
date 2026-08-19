@@ -48,6 +48,22 @@ internal static class Devices
 
     /// <summary>All consoles, flattened.</summary>
     public static IEnumerable<DeviceOption> All => Groups.SelectMany(g => g.Consoles);
+
+    /// <summary>The manufacturer that owns a platform code, or "Other" when unknown.</summary>
+    public static string ManufacturerFor(string code)
+    {
+        foreach (DeviceGroup group in Groups)
+        {
+            foreach (DeviceOption option in group.Consoles)
+            {
+                if (string.Equals(option.Code, code, StringComparison.OrdinalIgnoreCase))
+                {
+                    return group.Manufacturer;
+                }
+            }
+        }
+        return "Other";
+    }
 }
 
 /// <summary>A selectable console/handheld with its display name and SaveHub platform folder code.</summary>

@@ -50,6 +50,7 @@
             <Button Content="Download Selected..." Command="{Binding DownloadSelectedCommand}" HorizontalAlignment="Stretch"/>
             <Button Content="Delete Selected" Command="{Binding DeleteSelectedCommand}" HorizontalAlignment="Stretch"/>
             <Button Content="Delete All (game)" Command="{Binding DeleteAllCommand}" HorizontalAlignment="Stretch"/>
+            <Button Content="Rename Game..." Command="{Binding RenameGameCommand}" HorizontalAlignment="Stretch"/>
         </StackPanel>
     </Grid>
 </UserControl>

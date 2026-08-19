@@ -16,17 +16,36 @@ public sealed partial class MainForm
     private TabPage _tabDownload;
     private TabPage _tabEdit;
     private TabPage _tabManage;
+    private TabPage _tabLibrary;
     private TabPage _tabSettings;
 
     private UploadTab _uploadTab;
     private DownloadTab _downloadTab;
     private EditTab _editTab;
     private ManageTab _manageTab;
+    private LibraryTab _libraryTab;
     private SettingsTab _settingsTab;
 
     private Panel _bottom;
     private Label _status;
     private Button _donate;
+
+    private MenuStrip _menu;
+    private ToolStripMenuItem _miFile;
+    private ToolStripMenuItem _miQuit;
+    private ToolStripMenuItem _miTools;
+    private ToolStripMenuItem _miUpload;
+    private ToolStripMenuItem _miDownload;
+    private ToolStripMenuItem _miEdit;
+    private ToolStripMenuItem _miManage;
+    private ToolStripMenuItem _miLibrary;
+    private ToolStripMenuItem _miSettings;
+    private ToolStripMenuItem _miRebuild;
+    private ToolStripMenuItem _miHelp;
+    private ToolStripMenuItem _miDocs;
+    private ToolStripMenuItem _miSource;
+    private ToolStripMenuItem _miDonateMenu;
+    private ToolStripMenuItem _miAbout;
 
     protected override void Dispose(bool disposing)
     {
@@ -48,11 +67,29 @@ public sealed partial class MainForm
         _editTab = new EditTab();
         _tabManage = new TabPage();
         _manageTab = new ManageTab();
+        _tabLibrary = new TabPage();
+        _libraryTab = new LibraryTab();
         _tabSettings = new TabPage();
         _settingsTab = new SettingsTab();
         _bottom = new Panel();
         _status = new Label();
         _donate = new Button();
+        _menu = new MenuStrip();
+        _miFile = new ToolStripMenuItem();
+        _miQuit = new ToolStripMenuItem();
+        _miTools = new ToolStripMenuItem();
+        _miUpload = new ToolStripMenuItem();
+        _miDownload = new ToolStripMenuItem();
+        _miEdit = new ToolStripMenuItem();
+        _miManage = new ToolStripMenuItem();
+        _miLibrary = new ToolStripMenuItem();
+        _miSettings = new ToolStripMenuItem();
+        _miRebuild = new ToolStripMenuItem();
+        _miHelp = new ToolStripMenuItem();
+        _miDocs = new ToolStripMenuItem();
+        _miSource = new ToolStripMenuItem();
+        _miDonateMenu = new ToolStripMenuItem();
+        _miAbout = new ToolStripMenuItem();
         pbar = new ProgressBar();
         _tabs.SuspendLayout();
         _tabUpload.SuspendLayout();
@@ -61,6 +98,7 @@ public sealed partial class MainForm
         _tabManage.SuspendLayout();
         _tabSettings.SuspendLayout();
         _bottom.SuspendLayout();
+        _menu.SuspendLayout();
         SuspendLayout();
         // 
         // _tabs
@@ -69,6 +107,7 @@ public sealed partial class MainForm
         _tabs.Controls.Add(_tabDownload);
         _tabs.Controls.Add(_tabEdit);
         _tabs.Controls.Add(_tabManage);
+        _tabs.Controls.Add(_tabLibrary);
         _tabs.Controls.Add(_tabSettings);
         _tabs.Dock = DockStyle.Fill;
         _tabs.Location = new Point(0, 0);
@@ -146,13 +185,30 @@ public sealed partial class MainForm
         _manageTab.Size = new Size(783, 685);
         _manageTab.TabIndex = 0;
         // 
+        // _tabLibrary
+        // 
+        _tabLibrary.Controls.Add(_libraryTab);
+        _tabLibrary.Location = new Point(4, 24);
+        _tabLibrary.Name = "_tabLibrary";
+        _tabLibrary.Size = new Size(783, 685);
+        _tabLibrary.TabIndex = 4;
+        _tabLibrary.Text = "Library";
+        // 
+        // _libraryTab
+        // 
+        _libraryTab.Dock = DockStyle.Fill;
+        _libraryTab.Location = new Point(0, 0);
+        _libraryTab.Name = "_libraryTab";
+        _libraryTab.Size = new Size(783, 685);
+        _libraryTab.TabIndex = 0;
+        // 
         // _tabSettings
         // 
         _tabSettings.Controls.Add(_settingsTab);
         _tabSettings.Location = new Point(4, 24);
         _tabSettings.Name = "_tabSettings";
         _tabSettings.Size = new Size(783, 685);
-        _tabSettings.TabIndex = 4;
+        _tabSettings.TabIndex = 5;
         _tabSettings.Text = "Settings";
         // 
         // _settingsTab
@@ -205,11 +261,57 @@ public sealed partial class MainForm
         pbar.TabIndex = 1;
         pbar.Visible = false;
         // 
+        // _menu
+        // 
+        _miFile.Text = "&File";
+        _miFile.DropDownItems.Add(_miQuit);
+        _miQuit.Text = "&Quit";
+        _miQuit.Click += Menu_Quit;
+        _miTools.Text = "&Tools";
+        _miTools.DropDownItems.AddRange(new ToolStripItem[] { _miUpload, _miDownload, _miEdit, _miManage, _miLibrary, _miSettings, new ToolStripSeparator(), _miRebuild });
+        _miUpload.Text = "&Upload";
+        _miUpload.Tag = 0;
+        _miUpload.Click += Menu_ShowTab;
+        _miDownload.Text = "&Download";
+        _miDownload.Tag = 1;
+        _miDownload.Click += Menu_ShowTab;
+        _miEdit.Text = "&Edit";
+        _miEdit.Tag = 2;
+        _miEdit.Click += Menu_ShowTab;
+        _miManage.Text = "&Manage";
+        _miManage.Tag = 3;
+        _miManage.Click += Menu_ShowTab;
+        _miLibrary.Text = "&Library";
+        _miLibrary.Tag = 4;
+        _miLibrary.Click += Menu_ShowTab;
+        _miSettings.Text = "&Settings";
+        _miSettings.Tag = 5;
+        _miSettings.Click += Menu_ShowTab;
+        _miRebuild.Text = "&Rebuild Library Index";
+        _miRebuild.Click += Menu_RebuildLibrary;
+        _miHelp.Text = "&Help";
+        _miHelp.DropDownItems.AddRange(new ToolStripItem[] { _miDocs, _miSource, _miDonateMenu, new ToolStripSeparator(), _miAbout });
+        _miDocs.Text = "&Documentation (README)";
+        _miDocs.Click += Menu_OpenReadme;
+        _miSource.Text = "&Source project";
+        _miSource.Click += Menu_OpenSource;
+        _miDonateMenu.Text = "Support / &Donate";
+        _miDonateMenu.Click += Donate_Click;
+        _miAbout.Text = "&About SaveHub";
+        _miAbout.Click += Menu_About;
+        _menu.Items.AddRange(new ToolStripItem[] { _miFile, _miTools, _miHelp });
+        _menu.Location = new Point(0, 0);
+        _menu.Name = "_menu";
+        _menu.Size = new Size(791, 24);
+        _menu.TabIndex = 3;
+        // 
         // MainForm
         // 
         ClientSize = new Size(791, 741);
         Controls.Add(_tabs);
         Controls.Add(_bottom);
+        Controls.Add(_menu);
+        MainMenuStrip = _menu;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
         MaximumSize = new Size(880, 800);
@@ -223,6 +325,8 @@ public sealed partial class MainForm
         _tabManage.ResumeLayout(false);
         _tabSettings.ResumeLayout(false);
         _bottom.ResumeLayout(false);
+        _menu.ResumeLayout(false);
+        _menu.PerformLayout();
         ResumeLayout(false);
     }
 

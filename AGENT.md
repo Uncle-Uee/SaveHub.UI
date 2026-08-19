@@ -8,7 +8,20 @@ no API source.
 - `src/SaveHub.WinForms` — Windows desktop app (net10.0-windows).
 - `src/SaveHub.Avalonia` — cross-platform desktop UI (Windows/Linux/macOS), MVVM
   (CommunityToolkit.Mvvm). Full parity with the WinForms tabs
-  (Upload/Download/Edit/Manage/Settings). Android/Browser heads planned later.
+  (Upload/Download/Edit/Manage/Library/Settings). Android/Browser heads planned later.
+
+## Tabs (both UIs, kept in parity)
+- **Upload / Download / Edit** — submit, fetch, and replace saves.
+- **Manage** — bulk delete/download, per-save details, game+save filters, delete-all,
+  and **Rename game** (`SetGameNameAsync`).
+- **Library** — manufacturer → platform → game tree from the root `library.json`
+  index, cached locally at `%APPDATA%/SaveHub/library-cache.json`; Refresh reads the
+  backend index, Rebuild regenerates it.
+- **Settings** — provider config + test.
+- Edit/Manage game pickers show `Name (id)` via `GetGameNamesAsync`.
+- Both UIs have a **menu bar**: File (Quit), Tools (switch tabs + **Rebuild Library
+  Index** → updates the backend index and local cache), Help (README/source/donate/about).
+  Avalonia = `Menu`; WinForms = `MenuStrip`.
 
 ## Referencing the API
 - Package versions are centralized in `Directory.Packages.props`.

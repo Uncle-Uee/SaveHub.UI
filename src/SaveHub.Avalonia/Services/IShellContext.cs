@@ -31,6 +31,9 @@ internal interface IShellContext
     /// <summary>Shows a yes/no confirmation dialog.</summary>
     Task<bool> ConfirmAsync(string title, string message);
 
+    /// <summary>Prompts for a line of text, returning null when cancelled.</summary>
+    Task<string?> PromptAsync(string title, string message, string defaultValue);
+
     /// <summary>Prompts for one or more files, returning their local paths (empty if cancelled).</summary>
     Task<IReadOnlyList<string>> PickFilesAsync(string title, bool allowMultiple, string? filterName, IReadOnlyList<string>? patterns);
 

@@ -1,0 +1,25 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "Avalonia (Desktop)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-avalonia",
+            "program": "${workspaceFolder}/src/SaveHub.Avalonia/bin/Debug/net10.0/SaveHub.dll",
+            "cwd": "${workspaceFolder}/src/SaveHub.Avalonia",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        },
+        {
+            "name": "WinForms (Windows)",
+            "type": "coreclr",
+            "request": "launch",
+            "preLaunchTask": "build-winforms",
+            "program": "${workspaceFolder}/src/SaveHub.WinForms/bin/Debug/net10.0-windows/SaveHub.dll",
+            "cwd": "${workspaceFolder}/src/SaveHub.WinForms",
+            "console": "internalConsole",
+            "stopAtEntry": false
+        }
+    ]
+}

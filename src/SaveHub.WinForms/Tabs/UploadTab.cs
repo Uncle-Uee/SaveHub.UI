@@ -294,6 +294,11 @@ internal sealed partial class UploadTab : UserControl, ITabView
             SaveUploadResult result = await _controller.UploadAsync(client, request, new UploadOptions());
             _shell.ShowResult(result);
 
+            if (result.Merged)
+            {
+                _controller.CacheGameName(_upDevice, gameId, string.IsNullOrWhiteSpace(_upGameName.Text) ? null : _upGameName.Text.Trim());
+            }
+
             if (_controller.IsNintendo(_upDevice) && _upIconPath is null)
             {
                 _shell.SetStatus($"Uploaded. No cover art for {gameId} — add one later via Select Icon or the Edit tab.");

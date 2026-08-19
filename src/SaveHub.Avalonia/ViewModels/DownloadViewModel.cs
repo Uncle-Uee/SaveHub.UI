@@ -93,7 +93,7 @@ public sealed partial class DownloadViewModel : ViewModelBase
         SaveHubClient? client = _shell.TryCreateClient();
         if (client is null)
         {
-            _shell.SetStatus("No storage provider is ready — open Settings to configure or sign in.");
+            _shell.SetStatus(NoProviderMessage);
             return;
         }
         await _shell.RunBusy("Loading systems...", async () =>

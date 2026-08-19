@@ -22,30 +22,10 @@ public sealed partial class MainForm : Form, IShellContext
 
         Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
 
-        _views = [_uploadTab, _downloadTab, _editTab, _manageTab, _settingsTab];
+        _views = [_uploadTab, _downloadTab, _editTab, _manageTab, _libraryTab, _settingsTab];
         foreach (ITabView view in _views)
         {
             view.Initialize(_controller, this);
-        }
-    }
-
-    private async void Tabs_SelectedIndexChanged(object? sender, EventArgs e)
-    {
-        if (_tabs.SelectedIndex >= 0 && _tabs.SelectedIndex < _views.Length)
-        {
-            await _views[_tabs.SelectedIndex].OnActivatedAsync();
-        }
-    }
-
-    private void Donate_Click(object? sender, EventArgs e)
-    {
-        try
-        {
-            Process.Start(new ProcessStartInfo(SaveHubInfo.DonateUrl) { UseShellExecute = true });
-        }
-        catch (Exception ex)
-        {
-            MessageBox.Show(this, ex.Message, "Donate", MessageBoxButtons.OK, MessageBoxIcon.Warning);
         }
     }
 
@@ -103,6 +83,77 @@ public sealed partial class MainForm : Form, IShellContext
             message += $"\n\n{result.PullRequestUrl}";
         }
         MessageBox.Show(this, message, result.Merged ? "Merged" : "Submitted", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+
+    // ---------------------------------------------------------------- Event handlers
+
+    private async void Tabs_SelectedIndexChanged(object? sender, EventArgs e)
+    {
+        if (_tabs.SelectedIndex >= 0 && _tabs.SelectedIndex < _views.Length)
+        {
+            await _views[_tabs.SelectedIndex].OnActivatedAsync();
+        }
+    }
+
+    private void Donate_Click(object? sender, EventArgs e)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(SaveHubInfo.DonateUrl) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "Donate", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+    }
+
+    private void Menu_Quit(object? sender, EventArgs e)
+    {
+        Close();
+    }
+
+    private void Menu_ShowTab(object? sender, EventArgs e)
+    {
+        if (sender is ToolStripMenuItem item && item.Tag is int index && index >= 0 && index < _tabs.TabCount)
+        {
+            _tabs.SelectedIndex = index;
+        }
+    }
+
+    private async void Menu_RebuildLibrary(object? sender, EventArgs e)
+    {
+        _tabs.SelectedTab = _tabLibrary;
+        await _libraryTab.RebuildAsync();
+    }
+
+    private void Menu_OpenReadme(object? sender, EventArgs e)
+    {
+        OpenUrl($"{SaveHubInfo.ProjectUrl}#readme");
+    }
+
+    private void Menu_OpenSource(object? sender, EventArgs e)
+    {
+        OpenUrl(SaveHubInfo.ProjectUrl);
+    }
+
+    private void Menu_About(object? sender, EventArgs e)
+    {
+        MessageBox.Show(this, $"{SaveHubInfo.Product} {SaveHubInfo.Version}\n\n{SaveHubInfo.Attribution}",
+            "About SaveHub", MessageBoxButtons.OK, MessageBoxIcon.Information);
+    }
+
+    // ---------------------------------------------------------------- Helpers
+
+    private void OpenUrl(string url)
+    {
+        try
+        {
+            Process.Start(new ProcessStartInfo(url) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "SaveHub", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
     }
 
     private void SetBusy(bool busy)

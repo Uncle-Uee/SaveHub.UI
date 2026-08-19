@@ -8,6 +8,19 @@ Desktop (WinForms) and — soon — cross-platform (Avalonia) frontends for
 > Open source under the **MIT License** — see [LICENSE](LICENSE). If SaveHub is
 > useful to you, please consider supporting it: **https://pay.yoco.com/savehub**.
 
+## Tabs
+
+- **Upload / Download / Edit** — submit saves, fetch them, and replace an existing save.
+- **Manage** — multi-select **bulk download** and delete, a per-save **details** panel,
+  **filter** boxes for games and saves, **Delete All** for a game, and **Rename game**.
+- **Library** — a manufacturer → platform → game tree read from the backup's root
+  `library.json` index (cached locally). **Refresh** re-reads it; **Rebuild Index**
+  regenerates it from the per-platform indexes.
+- **Settings** — pick and configure a storage provider (see below).
+
+Game pickers show `Name (id)`; names come from each platform's index — set a **Game
+Title** on upload (or use **Rename game**) so saves are easy to identify.
+
 ## Build
 
 Requires the .NET 10 SDK.
