@@ -1,6 +1,7 @@
 using System.Collections.ObjectModel;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveHub.Avalonia.Common;
 using SaveHub.Avalonia.Services;
 using SaveHub.Core;
 using SaveHub.Core.Abstractions;
@@ -183,7 +184,7 @@ public sealed partial class SettingsViewModel : ViewModelBase
         SupabaseIsOwner = sb.IsOwner;
 
         GoogleDriveProviderSettings gd = settings.Google;
-        GoogleRoot = string.IsNullOrWhiteSpace(gd.RootFolderName) ? AppController.DefaultGoogleFolder : gd.RootFolderName;
+        GoogleRoot = string.IsNullOrWhiteSpace(gd.RootFolderName) ? CommonSettings.DefaultGoogleFolder : gd.RootFolderName;
         GoogleClientId = gd.ClientId;
         GoogleIsOwner = gd.IsOwner;
 

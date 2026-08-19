@@ -4,6 +4,7 @@ using SaveHub.GitHub;
 using SaveHub.GoogleDrive;
 using SaveHub.Hosting;
 using SaveHub.Supabase;
+using SaveHub.WinForms.Common;
 
 namespace SaveHub.WinForms.Tabs;
 
@@ -66,7 +67,7 @@ internal sealed partial class SettingsTab : UserControl, ITabView
         _sbUrl.Text = sb.Url; _sbBucket.Text = sb.Bucket; _sbOwner.Checked = sb.IsOwner;
 
         GoogleDriveProviderSettings gd = settings.Google;
-        _gdRoot.Text = string.IsNullOrWhiteSpace(gd.RootFolderName) ? MainFormController.DefaultGoogleFolder : gd.RootFolderName;
+        _gdRoot.Text = string.IsNullOrWhiteSpace(gd.RootFolderName) ? CommonSettings.DefaultGoogleFolder : gd.RootFolderName;
         _gdClientId.Text = gd.ClientId; _gdOwner.Checked = gd.IsOwner;
 
         _stProvider.SelectedIndex = settings.ActiveProviderIndex;

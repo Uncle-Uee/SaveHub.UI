@@ -1,4 +1,4 @@
-# AGENT.md — SaveHub.UI
+# AGENTS.md — SaveHub.UI
 
 Frontends for **SaveHub**. This repo consumes the SaveHub API as NuGet packages
 (`SaveHub.Core`, `.Hosting`, `.GitHub`, `.Supabase`, `.GoogleDrive`); it contains
@@ -33,6 +33,10 @@ no API source.
 
 ## Conventions
 - Code style: see `.github/copilot-instructions.md`.
-- License: MIT (© 2026 Ubaidullah Effendi). Keep the copyright notice.
+- Reusable constants live in a `Common/` folder per app as `static readonly` fields:
+  `CommonSettings` (default repo/folder names, cache file name) and, for Avalonia,
+  `CommonStrings` (shared UI text). Add new shared values there, not scattered in classes.
+- License: GPL-3.0-or-later (the apps). Keep the copyright notice in LICENSE.
+  The SaveHub API libraries this consumes are LGPL-3.0-or-later.
 - The donate link comes from `SaveHubInfo.DonateUrl` in the Core package — do not
   hardcode it.

@@ -3,6 +3,7 @@ using System.IO;
 using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveHub.Avalonia.Common;
 using SaveHub.Avalonia.Models;
 using SaveHub.Avalonia.Services;
 using SaveHub.Core;
@@ -93,7 +94,7 @@ public sealed partial class DownloadViewModel : ViewModelBase
         SaveHubClient? client = _shell.TryCreateClient();
         if (client is null)
         {
-            _shell.SetStatus(NoProviderMessage);
+            _shell.SetStatus(CommonStrings.NoProviderReady);
             return;
         }
         await _shell.RunBusy("Loading systems...", async () =>

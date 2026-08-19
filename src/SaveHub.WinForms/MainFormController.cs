@@ -7,6 +7,7 @@ using SaveHub.GitHub;
 using SaveHub.GoogleDrive;
 using SaveHub.Hosting;
 using SaveHub.Supabase;
+using SaveHub.WinForms.Common;
 
 namespace SaveHub.WinForms;
 
@@ -17,12 +18,6 @@ namespace SaveHub.WinForms;
 /// </summary>
 internal sealed class MainFormController
 {
-    /// <summary>Default GitHub repository name suggested in Settings.</summary>
-    public const string DefaultGitHubRepository = "Emu-Saves-Backup";
-
-    /// <summary>Default Google Drive root folder name suggested in Settings.</summary>
-    public const string DefaultGoogleFolder = "EmuSavesBackup";
-
     // ---------------------------------------------------------------- Providers / config
 
     public IReadOnlyList<ProviderDescriptor> Providers => SaveHubHost.Providers;
@@ -204,11 +199,11 @@ internal sealed class MainFormController
 
         if (string.IsNullOrWhiteSpace(gh.Repository))
         {
-            gh.Repository = DefaultGitHubRepository;
+            gh.Repository = CommonSettings.DefaultGitHubRepository;
         }
         if (string.IsNullOrWhiteSpace(gd.RootFolderName))
         {
-            gd.RootFolderName = DefaultGoogleFolder;
+            gd.RootFolderName = CommonSettings.DefaultGoogleFolder;
         }
 
         return new SettingsSnapshot(gh, sb, gd, ActiveProviderIndex(config.ActiveProvider));
@@ -254,7 +249,7 @@ internal sealed class MainFormController
     {
         SaveHubConfig config = AppServices.LoadConfig();
         GoogleDriveProviderSettings gd = GoogleDriveProviderFactory.ReadSettings(config) ?? new GoogleDriveProviderSettings();
-        gd.RootFolderName = string.IsNullOrWhiteSpace(rootFolderName) ? DefaultGoogleFolder : rootFolderName;
+        gd.RootFolderName = string.IsNullOrWhiteSpace(rootFolderName) ? CommonSettings.DefaultGoogleFolder : rootFolderName;
         gd.ClientId = clientId;
         gd.IsOwner = isOwner;
 
@@ -289,7 +284,7 @@ internal sealed class MainFormController
     }
 
     private static string LocalLibraryPath => Path.Combine(
-        Path.GetDirectoryName(AppServices.Store.Path) ?? ".", "library-cache.json");
+        Path.GetDirectoryName(AppServices.Store.Path) ?? ".", CommonSettings.LibraryCacheFileName);
 
     /// <summary>Loads the locally cached library index (empty when absent or unreadable).</summary>
     public LibraryIndex LoadLocalLibrary()

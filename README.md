@@ -2,11 +2,12 @@
 
 [![Support SaveHub](https://img.shields.io/badge/%E2%9D%A4-Support%20SaveHub-ff5f5f)](https://pay.yoco.com/savehub)
 
-Desktop (WinForms) and — soon — cross-platform (Avalonia) frontends for
+Desktop (WinForms) and cross-platform (Avalonia) frontends for
 [SaveHub](https://github.com/uncle-uee/SaveHub), built on the SaveHub API packages.
 
-> Open source under the **MIT License** — see [LICENSE](LICENSE). If SaveHub is
-> useful to you, please consider supporting it: **https://pay.yoco.com/savehub**.
+> Licensed under the **GNU General Public License v3 (GPL-3.0)** — see
+> [LICENSE](LICENSE). If SaveHub is useful to you, please consider supporting it:
+> **https://pay.yoco.com/savehub**.
 
 ## Tabs
 
