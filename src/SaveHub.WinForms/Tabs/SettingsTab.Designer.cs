@@ -29,6 +29,22 @@ partial class SettingsTab
     private Button _btnSignIn;
     private Label _gdStatus;
 
+    private Panel _pnlGitLab;
+    private TextBox _glBaseUrl;
+    private TextBox _glOwner;
+    private TextBox _glRepo;
+    private TextBox _glBranch;
+    private TextBox _glToken;
+    private CheckBox _glAutoMerge;
+
+    private Panel _pnlBitbucket;
+    private TextBox _bbWorkspace;
+    private TextBox _bbRepo;
+    private TextBox _bbBranch;
+    private TextBox _bbUser;
+    private TextBox _bbAppPass;
+    private CheckBox _bbAutoMerge;
+
     private Button _btnSave;
     private Button _btnTest;
     private Label _lblConfig;
@@ -65,6 +81,20 @@ partial class SettingsTab
         _gdOwner = new CheckBox();
         _btnSignIn = new Button();
         _gdStatus = new Label();
+        _pnlGitLab = new Panel();
+        _glBaseUrl = new TextBox();
+        _glOwner = new TextBox();
+        _glRepo = new TextBox();
+        _glBranch = new TextBox();
+        _glToken = new TextBox();
+        _glAutoMerge = new CheckBox();
+        _pnlBitbucket = new Panel();
+        _bbWorkspace = new TextBox();
+        _bbRepo = new TextBox();
+        _bbBranch = new TextBox();
+        _bbUser = new TextBox();
+        _bbAppPass = new TextBox();
+        _bbAutoMerge = new CheckBox();
         _btnSave = new Button();
         _btnTest = new Button();
         _lblConfig = new Label();
@@ -72,6 +102,8 @@ partial class SettingsTab
         _pnlGitHub.SuspendLayout();
         _pnlSupabase.SuspendLayout();
         _pnlGoogle.SuspendLayout();
+        _pnlGitLab.SuspendLayout();
+        _pnlBitbucket.SuspendLayout();
         SuspendLayout();
         //
         // _box
@@ -84,6 +116,8 @@ partial class SettingsTab
         _box.Controls.Add(_pnlGitHub);
         _box.Controls.Add(_pnlSupabase);
         _box.Controls.Add(_pnlGoogle);
+        _box.Controls.Add(_pnlGitLab);
+        _box.Controls.Add(_pnlBitbucket);
         _box.Controls.Add(_btnSave);
         _box.Controls.Add(_btnTest);
         //
@@ -211,6 +245,78 @@ partial class SettingsTab
         _gdStatus.Text = "Not signed in.";
         _gdStatus.Location = new Point(290, 136); _gdStatus.AutoSize = true;
         //
+        // _pnlGitLab
+        //
+        _pnlGitLab.Location = new Point(12, 48);
+        _pnlGitLab.Size = new Size(748, 250);
+        _pnlGitLab.Visible = false;
+        _pnlGitLab.Controls.Add(new Label { Text = "Instance URL:", Location = new Point(4, 8), AutoSize = true });
+        _pnlGitLab.Controls.Add(new Label { Text = "Owner/Group:", Location = new Point(4, 42), AutoSize = true });
+        _pnlGitLab.Controls.Add(new Label { Text = "Repository:", Location = new Point(4, 76), AutoSize = true });
+        _pnlGitLab.Controls.Add(new Label { Text = "Branch:", Location = new Point(4, 110), AutoSize = true });
+        _pnlGitLab.Controls.Add(new Label { Text = "Token:", Location = new Point(4, 144), AutoSize = true });
+        _pnlGitLab.Controls.Add(new Label { Text = "(or SAVEHUB_GITLAB_TOKEN env var)", Location = new Point(430, 144), AutoSize = true });
+        _pnlGitLab.Controls.Add(_glBaseUrl);
+        _pnlGitLab.Controls.Add(_glOwner);
+        _pnlGitLab.Controls.Add(_glRepo);
+        _pnlGitLab.Controls.Add(_glBranch);
+        _pnlGitLab.Controls.Add(_glToken);
+        _pnlGitLab.Controls.Add(_glAutoMerge);
+        _pnlGitLab.Controls.Add(new Label
+        {
+            Text = "What this is: SaveHub keeps your saves as files in a GitLab project you own. Every "
+                 + "upload is sent as a merge request (Maintainers can auto-merge). It needs a personal "
+                 + "access token with the 'api' scope \u2014 paste it above or set the SAVEHUB_GITLAB_TOKEN "
+                 + "environment variable. Set the instance URL only for a self-hosted GitLab.",
+            Location = new Point(4, 196),
+            Size = new Size(738, 50),
+            AutoSize = false,
+            ForeColor = SystemColors.GrayText,
+        });
+        _glBaseUrl.Location = new Point(120, 4); _glBaseUrl.Size = new Size(300, 23); _glBaseUrl.PlaceholderText = "https://gitlab.com";
+        _glOwner.Location = new Point(120, 38); _glOwner.Size = new Size(300, 23);
+        _glRepo.Location = new Point(120, 72); _glRepo.Size = new Size(300, 23);
+        _glBranch.Location = new Point(120, 106); _glBranch.Size = new Size(300, 23);
+        _glToken.Location = new Point(120, 140); _glToken.Size = new Size(300, 23); _glToken.UseSystemPasswordChar = true;
+        _glAutoMerge.Text = "Enable auto-merge (needs Maintainer)";
+        _glAutoMerge.Location = new Point(120, 170); _glAutoMerge.AutoSize = true;
+        //
+        // _pnlBitbucket
+        //
+        _pnlBitbucket.Location = new Point(12, 48);
+        _pnlBitbucket.Size = new Size(748, 250);
+        _pnlBitbucket.Visible = false;
+        _pnlBitbucket.Controls.Add(new Label { Text = "Workspace:", Location = new Point(4, 8), AutoSize = true });
+        _pnlBitbucket.Controls.Add(new Label { Text = "Repository:", Location = new Point(4, 42), AutoSize = true });
+        _pnlBitbucket.Controls.Add(new Label { Text = "Branch:", Location = new Point(4, 76), AutoSize = true });
+        _pnlBitbucket.Controls.Add(new Label { Text = "Username:", Location = new Point(4, 110), AutoSize = true });
+        _pnlBitbucket.Controls.Add(new Label { Text = "App password:", Location = new Point(4, 144), AutoSize = true });
+        _pnlBitbucket.Controls.Add(new Label { Text = "(or SAVEHUB_BITBUCKET_APP_PASSWORD env var)", Location = new Point(430, 144), AutoSize = true });
+        _pnlBitbucket.Controls.Add(_bbWorkspace);
+        _pnlBitbucket.Controls.Add(_bbRepo);
+        _pnlBitbucket.Controls.Add(_bbBranch);
+        _pnlBitbucket.Controls.Add(_bbUser);
+        _pnlBitbucket.Controls.Add(_bbAppPass);
+        _pnlBitbucket.Controls.Add(_bbAutoMerge);
+        _pnlBitbucket.Controls.Add(new Label
+        {
+            Text = "What this is: SaveHub keeps your saves as files in a Bitbucket repository you own. "
+                 + "Every upload is sent as a pull request (owners can auto-merge). It needs your "
+                 + "Bitbucket username and an app password with Repositories (read/write) and Pull "
+                 + "requests (write) \u2014 paste it above or set the SAVEHUB_BITBUCKET_APP_PASSWORD env var.",
+            Location = new Point(4, 196),
+            Size = new Size(738, 50),
+            AutoSize = false,
+            ForeColor = SystemColors.GrayText,
+        });
+        _bbWorkspace.Location = new Point(120, 4); _bbWorkspace.Size = new Size(300, 23);
+        _bbRepo.Location = new Point(120, 38); _bbRepo.Size = new Size(300, 23);
+        _bbBranch.Location = new Point(120, 72); _bbBranch.Size = new Size(300, 23);
+        _bbUser.Location = new Point(120, 106); _bbUser.Size = new Size(300, 23);
+        _bbAppPass.Location = new Point(120, 140); _bbAppPass.Size = new Size(300, 23); _bbAppPass.UseSystemPasswordChar = true;
+        _bbAutoMerge.Text = "Enable auto-merge (needs write access)";
+        _bbAutoMerge.Location = new Point(120, 170); _bbAutoMerge.AutoSize = true;
+        //
         // _btnSave
         //
         _btnSave.Text = "Save";
@@ -244,6 +350,10 @@ partial class SettingsTab
         _pnlSupabase.PerformLayout();
         _pnlGoogle.ResumeLayout(false);
         _pnlGoogle.PerformLayout();
+        _pnlGitLab.ResumeLayout(false);
+        _pnlGitLab.PerformLayout();
+        _pnlBitbucket.ResumeLayout(false);
+        _pnlBitbucket.PerformLayout();
         ResumeLayout(false);
         PerformLayout();
     }

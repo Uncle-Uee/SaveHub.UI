@@ -4,7 +4,9 @@ using SaveHub.Core.Abstractions;
 using SaveHub.Core.Archiving;
 using SaveHub.Core.Configuration;
 using SaveHub.Core.Models;
+using SaveHub.Bitbucket;
 using SaveHub.GitHub;
+using SaveHub.GitLab;
 using SaveHub.GoogleDrive;
 using SaveHub.Hosting;
 using SaveHub.Supabase;
@@ -236,19 +238,19 @@ internal sealed class AppController
     {
         SaveHubConfig config = AppServices.LoadConfig();
         GitHubProviderSettings gh = GitHubProviderFactory.ReadSettings(config) ?? new GitHubProviderSettings();
+        GitLabProviderSettings gl = GitLabProviderFactory.ReadSettings(config) ?? new GitLabProviderSettings();
+        BitbucketProviderSettings bb = BitbucketProviderFactory.ReadSettings(config) ?? new BitbucketProviderSettings();
         SupabaseProviderSettings sb = SupabaseProviderFactory.ReadSettings(config) ?? new SupabaseProviderSettings();
         GoogleDriveProviderSettings gd = GoogleDriveProviderFactory.ReadSettings(config) ?? new GoogleDriveProviderSettings();
 
-        if (string.IsNullOrWhiteSpace(gh.Repository))
-        {
-            gh.Repository = CommonSettings.DefaultGitHubRepository;
-        }
+        // The repository name is intentionally left blank for new users; the UI shows the default
+        // only as a placeholder hint. The Google folder default is functional and kept.
         if (string.IsNullOrWhiteSpace(gd.RootFolderName))
         {
             gd.RootFolderName = CommonSettings.DefaultGoogleFolder;
         }
 
-        return new SettingsSnapshot(gh, sb, gd, ActiveProviderIndex(config.ActiveProvider));
+        return new SettingsSnapshot(gh, gl, bb, sb, gd, ActiveProviderIndex(config.ActiveProvider));
     }
 
     public void SaveGitHubSettings(string owner, string repository, string branch, bool autoMerge, string? token)
@@ -267,6 +269,46 @@ internal sealed class AppController
         }
 
         GitHubProviderFactory.WriteSettings(config, gh);
+        AppServices.SaveConfig(config);
+    }
+
+    public void SaveGitLabSettings(string baseUrl, string owner, string repository, string branch, bool autoMerge, string? token)
+    {
+        SaveHubConfig config = AppServices.LoadConfig();
+        GitLabProviderSettings gl = GitLabProviderFactory.ReadSettings(config) ?? new GitLabProviderSettings();
+
+        gl.BaseUrl = string.IsNullOrWhiteSpace(baseUrl) ? "https://gitlab.com" : baseUrl;
+        gl.Owner = owner;
+        gl.Repository = repository;
+        gl.Branch = branch;
+        gl.AutoMerge = autoMerge;
+
+        if (!string.IsNullOrEmpty(token))
+        {
+            gl.Token = token;
+        }
+
+        GitLabProviderFactory.WriteSettings(config, gl);
+        AppServices.SaveConfig(config);
+    }
+
+    public void SaveBitbucketSettings(string workspace, string repository, string branch, string username, bool autoMerge, string? appPassword)
+    {
+        SaveHubConfig config = AppServices.LoadConfig();
+        BitbucketProviderSettings bb = BitbucketProviderFactory.ReadSettings(config) ?? new BitbucketProviderSettings();
+
+        bb.Workspace = workspace;
+        bb.Repository = repository;
+        bb.Branch = branch;
+        bb.Username = username;
+        bb.AutoMerge = autoMerge;
+
+        if (!string.IsNullOrEmpty(appPassword))
+        {
+            bb.AppPassword = appPassword;
+        }
+
+        BitbucketProviderFactory.WriteSettings(config, bb);
         AppServices.SaveConfig(config);
     }
 
@@ -344,6 +386,8 @@ internal sealed class AppController
 /// <summary>Immutable view of the persisted provider settings used to populate the Settings tab.</summary>
 internal sealed record SettingsSnapshot(
     GitHubProviderSettings GitHub,
+    GitLabProviderSettings GitLab,
+    BitbucketProviderSettings Bitbucket,
     SupabaseProviderSettings Supabase,
     GoogleDriveProviderSettings Google,
     int ActiveProviderIndex);

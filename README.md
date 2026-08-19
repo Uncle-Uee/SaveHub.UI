@@ -6,8 +6,9 @@
 [SaveHub](https://github.com/uncle-uee/SaveHub) — friendly apps for backing up,
 browsing, and restoring your game saves without touching the command line. They wrap
 the SaveHub API so you can push **memory cards**, **save states**, and **PC
-save-game folders** to your chosen cloud storage (**GitHub**, **Google Drive**, or
-**Supabase**) and get them back on any machine, complete with game names and cover
+save-game folders** to your chosen cloud storage (**GitHub**, **GitLab**,
+**Bitbucket**, **Google Drive**, or **Supabase**) and get them back on any machine,
+complete with game names and cover
 art. SaveHub ships as a native Windows app (**WinForms**) and a cross-platform app
 (**Avalonia**) for Windows, Linux, and macOS, built on the shared SaveHub API
 packages.
@@ -48,8 +49,9 @@ Open the **Settings** tab, pick a provider, fill in the fields, click **Save**, 
 file; the path is shown at the top of the Settings tab). A short description of the
 selected provider is shown under the Save / Test buttons.
 
-Defaults suggested in the UI: GitHub repository **`Emu-Saves-Backup`** and Google Drive
-folder **`EmuSavesBackup`** — change them to whatever you use.
+The repository field is left blank for new users; the UI shows **`Emu-Saves-Backup`**
+only as a placeholder hint (name the repo whatever you like). The Google Drive folder
+defaults to **`EmuSavesBackup`** and is created automatically.
 
 For full details and screenshots see the SaveHub API repo's
 `docs/PROVIDER-SETUP.md` guide.
@@ -70,6 +72,34 @@ For full details and screenshots see the SaveHub API repo's
      environment variable so the secret stays out of the config file).
    - **Auto-merge** — only enable if you have write access; otherwise SaveHub opens a
      pull request for review.
+
+### GitLab
+
+1. Create a project to hold your saves (public or private).
+2. Create a **Personal Access Token** with the **`api`** scope
+   (GitLab → **Preferences → Access Tokens**).
+3. In SaveHub Settings → **GitLab**:
+   - **Instance URL** — leave as `https://gitlab.com`, or set your self-hosted URL.
+   - **Owner/Group** — your username or group path.
+   - **Repository** — the project path (slug).
+   - **Branch** — leave blank to use the project default.
+   - **Token** — paste it (or set the `SAVEHUB_GITLAB_TOKEN` environment variable).
+   - **Auto-merge** — only takes effect with Maintainer access; otherwise a merge
+     request is opened for review.
+
+### Bitbucket
+
+1. Create a repository to hold your saves (public or private).
+2. Create an **App password** (Bitbucket → **Personal settings → App passwords**)
+   with **Repositories: Read and write** and **Pull requests: Write**.
+3. In SaveHub Settings → **Bitbucket**:
+   - **Workspace** — your workspace ID.
+   - **Repository** — the repo slug.
+   - **Branch** — leave blank to use the main branch.
+   - **Username** — your Bitbucket username.
+   - **App password** — paste it (or set the `SAVEHUB_BITBUCKET_APP_PASSWORD` env var).
+   - **Auto-merge** — only enable if you have write access; otherwise a pull request
+     is opened for review.
 
 ### Supabase
 

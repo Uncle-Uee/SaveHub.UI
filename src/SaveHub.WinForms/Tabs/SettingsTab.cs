@@ -1,6 +1,8 @@
 using SaveHub.Core;
 using SaveHub.Core.Abstractions;
+using SaveHub.Bitbucket;
 using SaveHub.GitHub;
+using SaveHub.GitLab;
 using SaveHub.GoogleDrive;
 using SaveHub.Hosting;
 using SaveHub.Supabase;
@@ -47,6 +49,8 @@ internal sealed partial class SettingsTab : UserControl, ITabView
     {
         string code = SelectedProviderCode();
         _pnlGitHub.Visible = code == GitHubProviderFactory.ProviderName;
+        _pnlGitLab.Visible = code == GitLabProviderFactory.ProviderName;
+        _pnlBitbucket.Visible = code == BitbucketProviderFactory.ProviderName;
         _pnlSupabase.Visible = code == SupabaseProviderFactory.ProviderName;
         _pnlGoogle.Visible = code == GoogleDriveProviderFactory.ProviderName;
     }
@@ -60,8 +64,18 @@ internal sealed partial class SettingsTab : UserControl, ITabView
     {
         SettingsSnapshot settings = _controller.LoadSettings();
 
+        _stRepo.PlaceholderText = CommonSettings.DefaultGitHubRepository;
+        _glRepo.PlaceholderText = CommonSettings.DefaultGitHubRepository;
+        _bbRepo.PlaceholderText = CommonSettings.DefaultGitHubRepository;
+
         GitHubProviderSettings gh = settings.GitHub;
         _stOwner.Text = gh.Owner; _stRepo.Text = gh.Repository; _stBranch.Text = gh.Branch; _stAutoMerge.Checked = gh.AutoMerge;
+
+        GitLabProviderSettings gl = settings.GitLab;
+        _glBaseUrl.Text = gl.BaseUrl; _glOwner.Text = gl.Owner; _glRepo.Text = gl.Repository; _glBranch.Text = gl.Branch; _glAutoMerge.Checked = gl.AutoMerge;
+
+        BitbucketProviderSettings bb = settings.Bitbucket;
+        _bbWorkspace.Text = bb.Workspace; _bbRepo.Text = bb.Repository; _bbBranch.Text = bb.Branch; _bbUser.Text = bb.Username; _bbAutoMerge.Checked = bb.AutoMerge;
 
         SupabaseProviderSettings sb = settings.Supabase;
         _sbUrl.Text = sb.Url; _sbBucket.Text = sb.Bucket; _sbOwner.Checked = sb.IsOwner;
@@ -78,6 +92,14 @@ internal sealed partial class SettingsTab : UserControl, ITabView
     {
         switch (SelectedProviderCode())
         {
+            case GitLabProviderFactory.ProviderName:
+                _controller.SaveGitLabSettings(_glBaseUrl.Text.Trim(), _glOwner.Text.Trim(), _glRepo.Text.Trim(), _glBranch.Text.Trim(), _glAutoMerge.Checked,
+                    _glToken.Text.Length > 0 ? _glToken.Text : null);
+                break;
+            case BitbucketProviderFactory.ProviderName:
+                _controller.SaveBitbucketSettings(_bbWorkspace.Text.Trim(), _bbRepo.Text.Trim(), _bbBranch.Text.Trim(), _bbUser.Text.Trim(), _bbAutoMerge.Checked,
+                    _bbAppPass.Text.Length > 0 ? _bbAppPass.Text : null);
+                break;
             case SupabaseProviderFactory.ProviderName:
                 _controller.SaveSupabaseSettings(_sbUrl.Text.Trim(), _sbBucket.Text.Trim(), _sbOwner.Checked,
                     _sbKey.Text.Length > 0 ? _sbKey.Text : null);

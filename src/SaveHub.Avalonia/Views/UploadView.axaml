@@ -99,17 +99,18 @@
 
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="Title ID" Width="90" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding TitleId}" Width="240"/>
+                <TextBox Text="{Binding TitleId}" Width="240" PlaceholderText="e.g. SLUS-12345 (auto-detected for PlayStation)"/>
                 <Button Content="Detect" Command="{Binding DetectTitleIdCommand}"/>
             </StackPanel>
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <TextBlock Text="Game Name" Width="90" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding GameName}" Width="340"/>
+                <TextBox Text="{Binding GameName}" Width="340" PlaceholderText="Shown in your library; required for PC save folders"/>
             </StackPanel>
 
             <TextBlock Text="Description" FontWeight="Bold"/>
             <TextBox Text="{Binding Description}" MaxLength="{Binding MaxDescriptionLength}"
-                     AcceptsReturn="True" TextWrapping="Wrap" Height="72"/>
+                     AcceptsReturn="True" TextWrapping="Wrap" Height="72"
+                     PlaceholderText="Describe this save (e.g. ‘Chapter 5, all upgrades’)"/>
             <TextBlock Text="{Binding DescriptionCount}" HorizontalAlignment="Right" Foreground="Gray"/>
 
             <Button Content="Upload" Command="{Binding SubmitCommand}" HorizontalAlignment="Left" MinWidth="120"/>

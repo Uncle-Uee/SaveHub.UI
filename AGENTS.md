@@ -21,7 +21,9 @@ no API source.
 - **Library** — manufacturer → platform → game tree from the root `library.json`
   index, cached locally at `%APPDATA%/SaveHub/library-cache.json`; Refresh reads the
   backend index, Rebuild regenerates it.
-- **Settings** — provider config + test.
+- **Settings** — provider config + test. Providers: GitHub, GitLab, Bitbucket,
+  Supabase, Google Drive (each with its own panel). The repository field is left
+  blank for new users; the default name shows only as a placeholder hint.
 - Edit/Manage game pickers show `Name (id)` via `GetGameNamesAsync`.
 - Both UIs have a **menu bar**: File (Quit), Tools (switch tabs + **Rebuild Library
   Index** → updates the backend index and local cache), Help (README/source/donate/about).

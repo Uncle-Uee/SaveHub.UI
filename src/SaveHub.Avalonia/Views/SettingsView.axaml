@@ -24,7 +24,7 @@
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="Repository" Width="110" VerticalAlignment="Center"/>
-                    <TextBox Text="{Binding Repository}" Width="300"/>
+                    <TextBox Text="{Binding Repository}" Width="300" PlaceholderText="{Binding RepositoryPlaceholder}"/>
                 </StackPanel>
                 <StackPanel Orientation="Horizontal" Spacing="8">
                     <TextBlock Text="Branch" Width="110" VerticalAlignment="Center"/>
@@ -35,6 +35,56 @@
                     <TextBox Text="{Binding Token}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
                 </StackPanel>
                 <CheckBox Content="Auto-merge pull requests" IsChecked="{Binding AutoMerge}" Margin="118,0,0,0"/>
+            </StackPanel>
+
+            <!-- GitLab -->
+            <StackPanel IsVisible="{Binding ShowGitLab}" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Instance URL" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding GitLabBaseUrl}" Width="300" PlaceholderText="https://gitlab.com"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Owner/Group" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding GitLabOwner}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Repository" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding GitLabRepository}" Width="300" PlaceholderText="{Binding RepositoryPlaceholder}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Branch" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding GitLabBranch}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Token" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding GitLabToken}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
+                </StackPanel>
+                <CheckBox Content="Auto-merge (needs Maintainer)" IsChecked="{Binding GitLabAutoMerge}" Margin="118,0,0,0"/>
+            </StackPanel>
+
+            <!-- Bitbucket -->
+            <StackPanel IsVisible="{Binding ShowBitbucket}" Spacing="6">
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Workspace" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding BitbucketWorkspace}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Repository" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding BitbucketRepository}" Width="300" PlaceholderText="{Binding RepositoryPlaceholder}"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Branch" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding BitbucketBranch}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="Username" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding BitbucketUsername}" Width="300"/>
+                </StackPanel>
+                <StackPanel Orientation="Horizontal" Spacing="8">
+                    <TextBlock Text="App password" Width="110" VerticalAlignment="Center"/>
+                    <TextBox Text="{Binding BitbucketAppPassword}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
+                </StackPanel>
+                <CheckBox Content="Auto-merge (needs write access)" IsChecked="{Binding BitbucketAutoMerge}" Margin="118,0,0,0"/>
             </StackPanel>
 
             <!-- Supabase -->

@@ -5,7 +5,9 @@ using SaveHub.Avalonia.Common;
 using SaveHub.Avalonia.Services;
 using SaveHub.Core;
 using SaveHub.Core.Abstractions;
+using SaveHub.Bitbucket;
 using SaveHub.GitHub;
+using SaveHub.GitLab;
 using SaveHub.GoogleDrive;
 using SaveHub.Hosting;
 using SaveHub.Supabase;
@@ -20,6 +22,8 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     [NotifyPropertyChangedFor(nameof(ShowGitHub))]
+    [NotifyPropertyChangedFor(nameof(ShowGitLab))]
+    [NotifyPropertyChangedFor(nameof(ShowBitbucket))]
     [NotifyPropertyChangedFor(nameof(ShowSupabase))]
     [NotifyPropertyChangedFor(nameof(ShowGoogle))]
     [NotifyPropertyChangedFor(nameof(ProviderDescription))]
@@ -42,6 +46,42 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     [ObservableProperty]
     private string _token = string.Empty;
+
+    [ObservableProperty]
+    private string _gitLabBaseUrl = string.Empty;
+
+    [ObservableProperty]
+    private string _gitLabOwner = string.Empty;
+
+    [ObservableProperty]
+    private string _gitLabRepository = string.Empty;
+
+    [ObservableProperty]
+    private string _gitLabBranch = string.Empty;
+
+    [ObservableProperty]
+    private bool _gitLabAutoMerge;
+
+    [ObservableProperty]
+    private string _gitLabToken = string.Empty;
+
+    [ObservableProperty]
+    private string _bitbucketWorkspace = string.Empty;
+
+    [ObservableProperty]
+    private string _bitbucketRepository = string.Empty;
+
+    [ObservableProperty]
+    private string _bitbucketBranch = string.Empty;
+
+    [ObservableProperty]
+    private string _bitbucketUsername = string.Empty;
+
+    [ObservableProperty]
+    private bool _bitbucketAutoMerge;
+
+    [ObservableProperty]
+    private string _bitbucketAppPassword = string.Empty;
 
     [ObservableProperty]
     private string _supabaseUrl = string.Empty;
@@ -74,12 +114,29 @@ public sealed partial class SettingsViewModel : ViewModelBase
 
     public bool ShowGitHub => SelectedProviderCode() == GitHubProviderFactory.ProviderName;
 
+    public bool ShowGitLab => SelectedProviderCode() == GitLabProviderFactory.ProviderName;
+
+    public bool ShowBitbucket => SelectedProviderCode() == BitbucketProviderFactory.ProviderName;
+
     public bool ShowSupabase => SelectedProviderCode() == SupabaseProviderFactory.ProviderName;
 
     public bool ShowGoogle => SelectedProviderCode() == GoogleDriveProviderFactory.ProviderName;
 
+    /// <summary>Suggested repository name shown as a placeholder; not a forced default.</summary>
+    public string RepositoryPlaceholder => CommonSettings.DefaultGitHubRepository;
+
     public string ProviderDescription => SelectedProviderCode() switch
     {
+        GitLabProviderFactory.ProviderName =>
+            "GitLab: saves are contributed to a GitLab project as merge requests. Enter the owner/group and " +
+            "project name, an optional branch (blank = the default), and a personal access token with the " +
+            "'api' scope (or set SAVEHUB_GITLAB_TOKEN). Set the instance URL only for a self-hosted GitLab. " +
+            "Auto-merge needs Maintainer access.",
+        BitbucketProviderFactory.ProviderName =>
+            "Bitbucket: saves are contributed to a Bitbucket repository as pull requests. Enter the workspace " +
+            "and repository, an optional branch (blank = the main branch), your username, and an app password " +
+            "with Repositories (read/write) and Pull requests (write) — or set SAVEHUB_BITBUCKET_APP_PASSWORD. " +
+            "Enable auto-merge only if you have write access.",
         SupabaseProviderFactory.ProviderName =>
             "Supabase Storage: saves are stored in a bucket of your Supabase project. " +
             "Enter the project URL (https://<ref>.supabase.co), the bucket name, and an API key " +
@@ -178,6 +235,20 @@ public sealed partial class SettingsViewModel : ViewModelBase
         Branch = gh.Branch;
         AutoMerge = gh.AutoMerge;
 
+        GitLabProviderSettings gl = settings.GitLab;
+        GitLabBaseUrl = gl.BaseUrl;
+        GitLabOwner = gl.Owner;
+        GitLabRepository = gl.Repository;
+        GitLabBranch = gl.Branch;
+        GitLabAutoMerge = gl.AutoMerge;
+
+        BitbucketProviderSettings bb = settings.Bitbucket;
+        BitbucketWorkspace = bb.Workspace;
+        BitbucketRepository = bb.Repository;
+        BitbucketBranch = bb.Branch;
+        BitbucketUsername = bb.Username;
+        BitbucketAutoMerge = bb.AutoMerge;
+
         SupabaseProviderSettings sb = settings.Supabase;
         SupabaseUrl = sb.Url;
         SupabaseBucket = sb.Bucket;
@@ -195,6 +266,14 @@ public sealed partial class SettingsViewModel : ViewModelBase
     {
         switch (SelectedProviderCode())
         {
+            case GitLabProviderFactory.ProviderName:
+                _controller.SaveGitLabSettings(GitLabBaseUrl.Trim(), GitLabOwner.Trim(), GitLabRepository.Trim(), GitLabBranch.Trim(), GitLabAutoMerge,
+                    GitLabToken.Length > 0 ? GitLabToken : null);
+                break;
+            case BitbucketProviderFactory.ProviderName:
+                _controller.SaveBitbucketSettings(BitbucketWorkspace.Trim(), BitbucketRepository.Trim(), BitbucketBranch.Trim(), BitbucketUsername.Trim(), BitbucketAutoMerge,
+                    BitbucketAppPassword.Length > 0 ? BitbucketAppPassword : null);
+                break;
             case SupabaseProviderFactory.ProviderName:
                 _controller.SaveSupabaseSettings(SupabaseUrl.Trim(), SupabaseBucket.Trim(), SupabaseIsOwner,
                     SupabaseKey.Length > 0 ? SupabaseKey : null);

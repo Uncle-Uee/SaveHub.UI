@@ -178,6 +178,7 @@ partial class UploadTab
         _upGameName.Name = "_upGameName";
         _upGameName.Size = new Size(360, 23);
         _upGameName.TabIndex = 4;
+        _upGameName.PlaceholderText = "Game name — shown in your library; required for PC save folders";
         // 
         // _upTitleId
         // 
@@ -185,6 +186,7 @@ partial class UploadTab
         _upTitleId.Name = "_upTitleId";
         _upTitleId.Size = new Size(250, 23);
         _upTitleId.TabIndex = 5;
+        _upTitleId.PlaceholderText = "Title ID, e.g. SLUS-12345 (auto-detected for PlayStation)";
         // 
         // _upDescription
         // 
@@ -194,6 +196,7 @@ partial class UploadTab
         _upDescription.ScrollBars = ScrollBars.Vertical;
         _upDescription.Size = new Size(360, 96);
         _upDescription.TabIndex = 6;
+        _upDescription.PlaceholderText = "Describe this save (e.g. ‘Chapter 5, all upgrades’)";
         _upDescription.TextChanged += Upload_DescriptionChanged;
         // 
         // _upDescCount

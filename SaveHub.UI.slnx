@@ -3,4 +3,7 @@
     <Project Path="src/SaveHub.WinForms/SaveHub.WinForms.csproj" />
     <Project Path="src/SaveHub.Avalonia/SaveHub.Avalonia.csproj" />
   </Folder>
+  <Project Path="../SaveHub/src/SaveHub.Bitbucket/SaveHub.Bitbucket.csproj" />
+  <Project Path="../SaveHub/src/SaveHub.Core/SaveHub.Core.csproj" />
+  <Project Path="../SaveHub/src/SaveHub.GitLab/SaveHub.GitLab.csproj" />
 </Solution>
