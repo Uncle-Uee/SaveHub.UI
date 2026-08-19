@@ -3,6 +3,7 @@
              xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
              xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
              xmlns:vm="using:SaveHub.Avalonia.ViewModels"
+             xmlns:models="using:SaveHub.Avalonia.Models"
              mc:Ignorable="d" d:DesignWidth="880" d:DesignHeight="600"
              x:Class="SaveHub.Avalonia.Views.UploadView"
              x:DataType="vm:UploadViewModel">
@@ -59,6 +60,8 @@
                 <RadioButton GroupName="saveType" Content="Memory Card" IsChecked="{Binding IsMemoryCard}"/>
             </StackPanel>
 
+            <CheckBox Content="Bulk memory-card upload (pick a folder of cards)" IsChecked="{Binding IsBulk}"/>
+
             <StackPanel Orientation="Horizontal" Spacing="8">
                 <Button Content="Browse Files..." Command="{Binding BrowseCommand}"/>
                 <Button Content="Browse Folder..." Command="{Binding BrowseFolderCommand}"/>
@@ -67,11 +70,30 @@
             <TextBox Text="{Binding PathText}" IsReadOnly="True" PlaceholderText="No files selected"/>
 
             <DataGrid ItemsSource="{Binding Files}" Height="248" IsReadOnly="True"
+                      IsVisible="{Binding !IsBulk}"
                       GridLinesVisibility="All" CanUserResizeColumns="True">
                 <DataGrid.Columns>
                     <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220"/>
                     <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="90"/>
                     <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*"/>
+                </DataGrid.Columns>
+            </DataGrid>
+
+            <DataGrid ItemsSource="{Binding BulkCards}" Height="248"
+                      IsVisible="{Binding IsBulk}" AutoGenerateColumns="False"
+                      GridLinesVisibility="All" CanUserResizeColumns="True">
+                <DataGrid.Columns>
+                    <DataGridTextColumn Header="Game" Binding="{Binding Game}" Width="*"/>
+                    <DataGridTextColumn Header="ID" Binding="{Binding TitleId}" Width="140"/>
+                    <DataGridTemplateColumn Header="Action" Width="160">
+                        <DataGridTemplateColumn.CellTemplate>
+                            <DataTemplate x:DataType="models:BulkCardRow">
+                                <ComboBox ItemsSource="{x:Static models:BulkCardRow.Modes}"
+                                          SelectedItem="{Binding Mode}" Margin="2" MinWidth="140"/>
+                            </DataTemplate>
+                        </DataGridTemplateColumn.CellTemplate>
+                    </DataGridTemplateColumn>
+                    <DataGridTextColumn Header="File" Binding="{Binding FileName}" IsReadOnly="True" Width="160"/>
                 </DataGrid.Columns>
             </DataGrid>
 

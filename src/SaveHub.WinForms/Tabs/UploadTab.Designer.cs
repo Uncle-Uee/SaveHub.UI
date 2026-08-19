@@ -10,6 +10,8 @@ partial class UploadTab
     private Button _btnIcon;
     private TextBox _upPath;
     private ListView _upFiles;
+    private CheckBox _upBulk;
+    private DataGridView _bulkGrid;
 
     private GroupBox _detailsBox;
     private TextBox _upGameName;
@@ -45,6 +47,8 @@ partial class UploadTab
         _btnIcon = new Button();
         _upPath = new TextBox();
         _upFiles = new ListView();
+        _upBulk = new CheckBox();
+        _bulkGrid = new DataGridView();
         _detailsBox = new GroupBox();
         _btnDetect = new Button();
         _upGameName = new TextBox();
@@ -69,7 +73,9 @@ partial class UploadTab
         _saveBox.Controls.Add(_btnBrowse);
         _saveBox.Controls.Add(_btnBrowseFolder);
         _saveBox.Controls.Add(_btnIcon);
+        _saveBox.Controls.Add(_upBulk);
         _saveBox.Controls.Add(_upPath);
+        _saveBox.Controls.Add(_bulkGrid);
         _saveBox.Controls.Add(_upFiles);
         _saveBox.Location = new Point(8, 8);
         _saveBox.Name = "_saveBox";
@@ -120,6 +126,28 @@ partial class UploadTab
         _upFiles.Size = new Size(476, 196);
         _upFiles.TabIndex = 4;
         _upFiles.UseCompatibleStateImageBehavior = false;
+        // 
+        // _upBulk
+        // 
+        _upBulk.AutoSize = true;
+        _upBulk.Location = new Point(360, 29);
+        _upBulk.Name = "_upBulk";
+        _upBulk.Size = new Size(120, 19);
+        _upBulk.TabIndex = 5;
+        _upBulk.Text = "Bulk cards";
+        _upBulk.CheckedChanged += Upload_BulkChanged;
+        // 
+        // _bulkGrid
+        // 
+        _bulkGrid.AllowUserToAddRows = false;
+        _bulkGrid.AllowUserToDeleteRows = false;
+        _bulkGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
+        _bulkGrid.Location = new Point(12, 92);
+        _bulkGrid.Name = "_bulkGrid";
+        _bulkGrid.RowHeadersVisible = false;
+        _bulkGrid.Size = new Size(476, 196);
+        _bulkGrid.TabIndex = 6;
+        _bulkGrid.Visible = false;
         // 
         // _detailsBox
         // 

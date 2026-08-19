@@ -11,7 +11,11 @@ no API source.
   (Upload/Download/Edit/Manage/Library/Settings). Android/Browser heads planned later.
 
 ## Tabs (both UIs, kept in parity)
-- **Upload / Download / Edit** — submit, fetch, and replace saves.
+- **Upload / Download / Edit** — submit, fetch, and replace saves. Upload has a
+  **Bulk cards** mode: pick a folder of memory cards and choose per card, via a
+  dropdown, whether to **Upload + Index** (make `NN.zip` and add an index row) or
+  **Index only**; all cards are catalogued in `PLATFORM/!index/README.md`
+  (`UpdateMemoryCardIndexAsync`). A **PC** save-folder upload requires a game name.
 - **Manage** — bulk delete/download, per-save details, game+save filters, delete-all,
   and **Rename game** (`SetGameNameAsync`).
 - **Library** — manufacturer → platform → game tree from the root `library.json`

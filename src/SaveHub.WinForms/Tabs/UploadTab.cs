@@ -9,6 +9,8 @@ namespace SaveHub.WinForms.Tabs;
 internal sealed partial class UploadTab : UserControl, ITabView
 {
     private const int MaxDescription = 256;
+    private const string BulkModeUploadIndex = "Upload + Index";
+    private const string BulkModeIndexOnly = "Index only";
     private MainFormController _controller = null!;
     private IShellContext _shell = null!;
     private readonly List<ComboBox> _deviceCombos = [];
@@ -22,6 +24,7 @@ internal sealed partial class UploadTab : UserControl, ITabView
     {
         InitializeComponent();
         UiHelpers.ConfigureListView(_upFiles, ("Name", 200), ("Size", 90), ("Path", 176));
+        ConfigureBulkGrid();
     }
 
     public void Initialize(MainFormController controller, IShellContext shell)
@@ -121,12 +124,27 @@ internal sealed partial class UploadTab : UserControl, ITabView
 
     private void Upload_BrowseFolder(object? sender, EventArgs e)
     {
+        if (_upBulk.Checked)
+        {
+            BrowseBulkFolder();
+            return;
+        }
         _rbSaveFolder.Checked = true;
         Upload_Browse(sender, e);
     }
 
     private void Upload_Browse(object? sender, EventArgs e)
     {
+        if (_upBulk.Checked)
+        {
+            using OpenFileDialog bulkDialog = new OpenFileDialog { Multiselect = true, Title = "Select memory-card files" };
+            if (bulkDialog.ShowDialog(this) == DialogResult.OK)
+            {
+                PopulateBulkGrid(bulkDialog.FileNames);
+            }
+            return;
+        }
+
         SaveType type = SelectedSaveType();
         _upFilesList.Clear();
         _upRoot = null;
@@ -250,6 +268,11 @@ internal sealed partial class UploadTab : UserControl, ITabView
             _shell.Warn("Select a device type.");
             return;
         }
+        if (_upBulk.Checked)
+        {
+            await SubmitBulkAsync();
+            return;
+        }
         if (_upFilesList.Count == 0)
         {
             _shell.Warn("Browse and select the save file(s).");
@@ -264,6 +287,12 @@ internal sealed partial class UploadTab : UserControl, ITabView
 
         string titleId = _upTitleId.Text.Trim();
         string gameName = _upGameName.Text.Trim();
+        if (SelectedSaveType() == SaveType.SaveFolder &&
+            string.Equals(_upDevice, "PC", StringComparison.OrdinalIgnoreCase) && gameName.Length == 0)
+        {
+            _shell.Warn("Enter the game name for this desktop save folder.");
+            return;
+        }
         GameIdResolution resolution = _controller.Resolve(
             _upDevice, SelectedSaveType(), _upFilesList,
             titleId.Length == 0 ? null : titleId,
@@ -314,5 +343,134 @@ internal sealed partial class UploadTab : UserControl, ITabView
             long size = new FileInfo(path).Length;
             _upFiles.Items.Add(new ListViewItem([Path.GetFileName(path), MainFormController.FormatSize(size), path]));
         }
+    }
+
+    private void ConfigureBulkGrid()
+    {
+        _bulkGrid.AutoGenerateColumns = false;
+        _bulkGrid.AutoSizeColumnsMode = DataGridViewAutoSizeColumnsMode.Fill;
+        DataGridViewTextBoxColumn gameCol = new DataGridViewTextBoxColumn { HeaderText = "Game", FillWeight = 38 };
+        DataGridViewTextBoxColumn idCol = new DataGridViewTextBoxColumn { HeaderText = "ID", FillWeight = 22 };
+        DataGridViewComboBoxColumn modeCol = new DataGridViewComboBoxColumn { HeaderText = "Action", FillWeight = 24 };
+        modeCol.Items.Add(BulkModeUploadIndex);
+        modeCol.Items.Add(BulkModeIndexOnly);
+        DataGridViewTextBoxColumn fileCol = new DataGridViewTextBoxColumn { HeaderText = "File", ReadOnly = true, FillWeight = 28 };
+        _bulkGrid.Columns.AddRange(gameCol, idCol, modeCol, fileCol);
+        _bulkGrid.DataError += Bulk_DataError;
+    }
+
+    private void Bulk_DataError(object? sender, DataGridViewDataErrorEventArgs e)
+    {
+        e.Cancel = true;
+    }
+
+    private void Upload_BulkChanged(object? sender, EventArgs e)
+    {
+        bool bulk = _upBulk.Checked;
+        if (bulk)
+        {
+            _rbMemoryCard.Checked = true;
+        }
+        _rbSaveState.Enabled = !bulk;
+        _rbSaveFolder.Enabled = !bulk;
+        _bulkGrid.Visible = bulk;
+        _upFiles.Visible = !bulk;
+        _btnUpload.Text = bulk ? "Upload All" : "Upload";
+    }
+
+    private void BrowseBulkFolder()
+    {
+        using FolderBrowserDialog dialog = new FolderBrowserDialog { Description = "Select the folder of memory cards" };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+        string[] files = Directory.GetFiles(dialog.SelectedPath, "*", SearchOption.TopDirectoryOnly);
+        if (files.Length == 0)
+        {
+            _shell.Warn("That folder has no files.");
+            return;
+        }
+        _upPath.Text = dialog.SelectedPath;
+        PopulateBulkGrid(files);
+    }
+
+    private void PopulateBulkGrid(IReadOnlyList<string> files)
+    {
+        if (string.IsNullOrEmpty(_upDevice) && files.Count > 0 &&
+            _controller.DetectMemoryCardPlatform(files[0]) is { } detectedPlatform)
+        {
+            SetDeviceByCode(detectedPlatform);
+        }
+
+        _bulkGrid.Rows.Clear();
+        string platform = _upDevice ?? string.Empty;
+        foreach (string file in files)
+        {
+            string id = platform.Length > 0
+                ? _controller.DetectTitleId(platform, SaveType.MemoryCard, new[] { file }) ?? string.Empty
+                : string.Empty;
+            string name = platform.Length > 0
+                ? _controller.DetectSaveName(platform, new[] { file }) ?? string.Empty
+                : string.Empty;
+            int rowIndex = _bulkGrid.Rows.Add(name, id, BulkModeUploadIndex, Path.GetFileName(file));
+            _bulkGrid.Rows[rowIndex].Tag = file;
+        }
+        _shell.SetStatus($"Loaded {files.Count} memory card(s). Choose an action per card, then Upload All.");
+    }
+
+    private async Task SubmitBulkAsync()
+    {
+        if (_bulkGrid.Rows.Count == 0)
+        {
+            _shell.Warn("Browse a folder (or files) of memory cards first.");
+            return;
+        }
+        SaveHubClient? client = _shell.RequireClient();
+        if (client is null)
+        {
+            return;
+        }
+
+        string platform = _upDevice!;
+        List<MemoryCardIndexEntry> entries = new List<MemoryCardIndexEntry>();
+        int uploaded = 0;
+        await _shell.RunBusy("Uploading memory cards...", async () =>
+        {
+            foreach (DataGridViewRow row in _bulkGrid.Rows)
+            {
+                if (row.Tag is not string path)
+                {
+                    continue;
+                }
+                string game = (Convert.ToString(row.Cells[0].Value) ?? string.Empty).Trim();
+                string id = (Convert.ToString(row.Cells[1].Value) ?? string.Empty).Trim();
+                string mode = Convert.ToString(row.Cells[2].Value) ?? BulkModeUploadIndex;
+                GameIdResolution resolution = _controller.Resolve(
+                    platform, SaveType.MemoryCard, new[] { path },
+                    id.Length == 0 ? null : id,
+                    game.Length == 0 ? null : game);
+                string gameId = resolution.GameId;
+                string displayName = game.Length > 0 ? game : gameId;
+                if (mode == BulkModeUploadIndex)
+                {
+                    SaveUploadRequest request = new SaveUploadRequest
+                    {
+                        Platform = platform,
+                        GameId = gameId,
+                        SaveType = SaveType.MemoryCard,
+                        Files = new[] { path },
+                        Description = displayName,
+                        GameTitle = game.Length > 0 ? game : null,
+                        AutoFetchCoverArt = true,
+                    };
+                    await _controller.UploadAsync(client, request, new UploadOptions());
+                    uploaded++;
+                }
+                entries.Add(new MemoryCardIndexEntry(gameId, displayName));
+            }
+            await _controller.UpdateMemoryCardIndexAsync(client, platform, entries);
+        });
+        _shell.SetStatus($"Bulk complete: {uploaded} uploaded, {entries.Count} indexed in {platform}/{SaveNaming.MemoryCardIndexFolderName}.");
     }
 }

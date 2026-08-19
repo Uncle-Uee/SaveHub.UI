@@ -37,6 +37,9 @@ public sealed partial class UploadViewModel : ViewModelBase
     private bool _isMemoryCard = true;
 
     [ObservableProperty]
+    private bool _isBulk;
+
+    [ObservableProperty]
     private string _pathText = string.Empty;
 
     [ObservableProperty]
@@ -51,6 +54,8 @@ public sealed partial class UploadViewModel : ViewModelBase
 
     public ObservableCollection<FileRow> Files { get; } = [];
 
+    public ObservableCollection<BulkCardRow> BulkCards { get; } = [];
+
     public int MaxDescriptionLength => MaxDescription;
 
     public string DescriptionCount => $"{Description.Length}/{MaxDescription}";
@@ -64,6 +69,16 @@ public sealed partial class UploadViewModel : ViewModelBase
     [RelayCommand]
     private async Task BrowseFolder()
     {
+        if (IsBulk)
+        {
+            string? bulkFolder = await _shell.PickFolderAsync("Select the folder of memory cards");
+            if (bulkFolder is null)
+            {
+                return;
+            }
+            PopulateBulkGrid(Directory.GetFiles(bulkFolder, "*", SearchOption.TopDirectoryOnly));
+            return;
+        }
         IsSaveFolder = true;
         await Browse();
     }
@@ -71,6 +86,16 @@ public sealed partial class UploadViewModel : ViewModelBase
     [RelayCommand]
     private async Task Browse()
     {
+        if (IsBulk)
+        {
+            IReadOnlyList<string> bulkFiles = await _shell.PickFilesAsync("Select memory-card files", true, null, null);
+            if (bulkFiles.Count > 0)
+            {
+                PopulateBulkGrid(bulkFiles);
+            }
+            return;
+        }
+
         SaveType type = SelectedSaveType();
         _upFilesList.Clear();
         _upRoot = null;
@@ -177,6 +202,11 @@ public sealed partial class UploadViewModel : ViewModelBase
             await _shell.WarnAsync("Select a device type.");
             return;
         }
+        if (IsBulk)
+        {
+            await SubmitBulkAsync();
+            return;
+        }
         if (_upFilesList.Count == 0)
         {
             await _shell.WarnAsync("Browse and select the save file(s).");
@@ -191,6 +221,12 @@ public sealed partial class UploadViewModel : ViewModelBase
 
         string titleId = TitleId.Trim();
         string gameName = GameName.Trim();
+        if (SelectedSaveType() == SaveType.SaveFolder &&
+            string.Equals(_upDevice, "PC", StringComparison.OrdinalIgnoreCase) && gameName.Length == 0)
+        {
+            await _shell.WarnAsync("Enter the game name for this desktop save folder.");
+            return;
+        }
         GameIdResolution resolution = _controller.Resolve(
             _upDevice, SelectedSaveType(), _upFilesList,
             titleId.Length == 0 ? null : titleId,
@@ -318,5 +354,87 @@ public sealed partial class UploadViewModel : ViewModelBase
             long size = new FileInfo(path).Length;
             Files.Add(new FileRow(Path.GetFileName(path), AppController.FormatSize(size), path));
         }
+    }
+
+    partial void OnIsBulkChanged(bool value)
+    {
+        if (value)
+        {
+            IsMemoryCard = true;
+        }
+    }
+
+    private void PopulateBulkGrid(IReadOnlyList<string> files)
+    {
+        if (string.IsNullOrEmpty(_upDevice) && files.Count > 0 &&
+            _controller.DetectMemoryCardPlatform(files[0]) is { } detectedPlatform)
+        {
+            SetDeviceByCode(detectedPlatform);
+        }
+
+        BulkCards.Clear();
+        string platform = _upDevice ?? string.Empty;
+        foreach (string file in files)
+        {
+            string id = platform.Length > 0
+                ? _controller.DetectTitleId(platform, SaveType.MemoryCard, [file]) ?? string.Empty
+                : string.Empty;
+            string name = platform.Length > 0
+                ? _controller.DetectSaveName(platform, [file]) ?? string.Empty
+                : string.Empty;
+            BulkCards.Add(new BulkCardRow(file, Path.GetFileName(file), name, id, BulkCardRow.ModeUploadIndex));
+        }
+        PathText = $"{files.Count} memory card(s) loaded";
+        _shell.SetStatus($"Loaded {files.Count} memory card(s). Choose an action per card, then Upload.");
+    }
+
+    private async Task SubmitBulkAsync()
+    {
+        if (BulkCards.Count == 0)
+        {
+            await _shell.WarnAsync("Browse a folder (or files) of memory cards first.");
+            return;
+        }
+        SaveHubClient? client = await _shell.RequireClientAsync();
+        if (client is null)
+        {
+            return;
+        }
+
+        string platform = _upDevice!;
+        List<MemoryCardIndexEntry> entries = new List<MemoryCardIndexEntry>();
+        int uploaded = 0;
+        await _shell.RunBusy("Uploading memory cards...", async () =>
+        {
+            foreach (BulkCardRow card in BulkCards)
+            {
+                string game = card.Game.Trim();
+                string id = card.TitleId.Trim();
+                GameIdResolution resolution = _controller.Resolve(
+                    platform, SaveType.MemoryCard, [card.Path],
+                    id.Length == 0 ? null : id,
+                    game.Length == 0 ? null : game);
+                string gameId = resolution.GameId;
+                string displayName = game.Length > 0 ? game : gameId;
+                if (card.Mode == BulkCardRow.ModeUploadIndex)
+                {
+                    SaveUploadRequest request = new SaveUploadRequest
+                    {
+                        Platform = platform,
+                        GameId = gameId,
+                        SaveType = SaveType.MemoryCard,
+                        Files = [card.Path],
+                        Description = displayName,
+                        GameTitle = game.Length > 0 ? game : null,
+                        AutoFetchCoverArt = true,
+                    };
+                    await _controller.UploadAsync(client, request, new UploadOptions());
+                    uploaded++;
+                }
+                entries.Add(new MemoryCardIndexEntry(gameId, displayName));
+            }
+            await _controller.UpdateMemoryCardIndexAsync(client, platform, entries);
+        });
+        _shell.SetStatus($"Bulk complete: {uploaded} uploaded, {entries.Count} indexed in {platform}/{SaveNaming.MemoryCardIndexFolderName}.");
     }
 }

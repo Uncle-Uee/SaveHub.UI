@@ -132,6 +132,12 @@ internal sealed class MainFormController
         return client.UploadAsync(request, options);
     }
 
+    /// <summary>Adds or updates rows in the platform's bulk memory-card index.</summary>
+    public Task UpdateMemoryCardIndexAsync(SaveHubClient client, string platform, IReadOnlyList<MemoryCardIndexEntry> entries)
+    {
+        return client.UpdateMemoryCardIndexAsync(platform, entries);
+    }
+
     // ---------------------------------------------------------------- Save detection
 
     public string? DetectTitleId(string device, SaveType saveType, IReadOnlyList<string> files)
