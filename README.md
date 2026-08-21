@@ -14,7 +14,8 @@ art. SaveHub ships as a native Windows app (**WinForms**) and a cross-platform a
 packages.
 
 > Licensed under the **GNU General Public License v3 (GPL-3.0)** — see
-> [LICENSE](LICENSE). If SaveHub is useful to you, please consider supporting it:
+> [LICENSE](LICENSE). Third-party libraries are credited in [CREDITS.md](CREDITS.md).
+> If SaveHub is useful to you, please consider supporting it:
 > **https://pay.yoco.com/savehub**.
 
 ## Tabs
@@ -142,3 +143,15 @@ For full details and screenshots see the SaveHub API repo's
      **Test Connection**. SaveHub uses the least-privilege **`drive.file`** scope and
      only touches its own folder. The token is kept in memory and cleared when you
      close the app.
+
+## Credits
+
+The SaveHub apps are built with these open-source projects — thank you to their authors:
+
+- [Avalonia](https://github.com/AvaloniaUI/Avalonia) (MIT) — the cross-platform UI framework.
+- [Inter](https://github.com/rsms/inter) (SIL Open Font License 1.1) — the bundled UI typeface.
+- [.NET Community Toolkit — MVVM](https://github.com/CommunityToolkit/dotnet) (MIT).
+- [Windows Forms](https://github.com/dotnet/winforms) & [.NET](https://github.com/dotnet/runtime) (MIT).
+
+Full attributions and license texts are in [CREDITS.md](CREDITS.md) and
+[THIRD-PARTY-NOTICES.txt](THIRD-PARTY-NOTICES.txt).

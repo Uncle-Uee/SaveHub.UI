@@ -44,6 +44,9 @@ jobs:
         run: |
           $ver = "${{ github.event.release.tag_name }}"
           if (-not $ver) { $ver = "dev" }
+          foreach ($dir in "publish/winforms-win-x64", "publish/avalonia-win-x64") {
+            Copy-Item LICENSE, THIRD-PARTY-NOTICES.txt, CREDITS.md $dir
+          }
           Compress-Archive -Path publish/winforms-win-x64/* -DestinationPath "SaveHub-WinForms-$ver-win-x64.zip" -Force
           Compress-Archive -Path publish/avalonia-win-x64/* -DestinationPath "SaveHub-Avalonia-$ver-win-x64.zip" -Force
 
