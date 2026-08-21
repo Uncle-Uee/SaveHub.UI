@@ -54,10 +54,11 @@ no API source.
 - Default: `PackageReference` to the published packages.
 - Co-dev against local API source (sibling `..\SaveHub` clone):
   `dotnet build -p:UseLocalSaveHub=true` (switches to `ProjectReference`).
-- Before anything is published to NuGet: build with `-p:UseLocalSaveHub=true`, or
-  run `..\SaveHub\pack-api.ps1` then restore.
-- A fresh clone (no sibling `..\SaveHub`) restores `SaveHub.*` from NuGet.org — the
-  `savehub-local` feed is only a dev convenience and is skipped (NU1801) when absent.
+- Before anything is published to NuGet, build with `-p:UseLocalSaveHub=true`
+  (ProjectReference to the sibling source — no packages needed).
+- A fresh clone restores `SaveHub.*` from NuGet.org once published. The committed
+  `nuget.config` lists **only** nuget.org — a relative local feed would break restore
+  on clean clones and CI (NU1301: source doesn't exist).
 
 ## Releasing
 - `.github/workflows/release.yml` builds the WinForms and Avalonia Windows apps
