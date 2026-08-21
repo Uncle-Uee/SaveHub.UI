@@ -1,0 +1,62 @@
+name: release-ui
+
+# Builds the Windows desktop apps (WinForms + Avalonia) and attaches them to the
+# GitHub Release. It restores the SaveHub.* API packages from NuGet.org, so the
+# matching API packages (see Directory.Packages.props) MUST already be published
+# there — publish the SaveHub API release first, then publish this UI release.
+
+on:
+  release:
+    types: [published]
+  workflow_dispatch:
+
+permissions:
+  contents: write
+
+jobs:
+  windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish WinForms (win-x64, self-contained single file)
+        run: >
+          dotnet publish src/SaveHub.WinForms/SaveHub.WinForms.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true -p:DebugType=none
+          -o publish/winforms-win-x64
+
+      - name: Publish Avalonia (win-x64, self-contained single file)
+        run: >
+          dotnet publish src/SaveHub.Avalonia/SaveHub.Avalonia.csproj
+          -c Release -r win-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true -p:DebugType=none
+          -o publish/avalonia-win-x64
+
+      - name: Package
+        shell: pwsh
+        run: |
+          $ver = "${{ github.event.release.tag_name }}"
+          if (-not $ver) { $ver = "dev" }
+          Compress-Archive -Path publish/winforms-win-x64/* -DestinationPath "SaveHub-WinForms-$ver-win-x64.zip" -Force
+          Compress-Archive -Path publish/avalonia-win-x64/* -DestinationPath "SaveHub-Avalonia-$ver-win-x64.zip" -Force
+
+      - name: Upload build artifacts (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: savehub-windows
+          path: SaveHub-*.zip
+
+      - name: Attach to the GitHub Release
+        if: github.event_name == 'release'
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" SaveHub-WinForms-*.zip SaveHub-Avalonia-*.zip --clobber

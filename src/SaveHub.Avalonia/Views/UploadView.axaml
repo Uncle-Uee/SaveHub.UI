@@ -60,51 +60,46 @@
                 <RadioButton GroupName="saveType" Content="Memory Card" IsChecked="{Binding IsMemoryCard}"/>
             </StackPanel>
 
-            <CheckBox Content="Bulk memory-card upload (pick a folder of cards)" IsChecked="{Binding IsBulk}"/>
-
             <StackPanel Orientation="Horizontal" Spacing="8">
-                <Button Content="Browse Files..." Command="{Binding BrowseCommand}"/>
-                <Button Content="Browse Folder..." Command="{Binding BrowseFolderCommand}"/>
-                <Button Content="Select Icon..." Command="{Binding SelectIconCommand}"/>
+                <Button Content="Browse Files..." Command="{Binding BrowseCommand}" ToolTip.Tip="Pick the save file(s) to upload"/>
+                <Button Content="Browse Folder..." Command="{Binding BrowseFolderCommand}" ToolTip.Tip="Pick a save folder to upload"/>
+                <Button Content="Select Icon..." Command="{Binding SelectIconCommand}" ToolTip.Tip="Pick a cover image for this game (shown below)"/>
             </StackPanel>
             <TextBox Text="{Binding PathText}" IsReadOnly="True" PlaceholderText="No files selected"/>
 
-            <DataGrid ItemsSource="{Binding Files}" Height="248" IsReadOnly="True"
-                      IsVisible="{Binding !IsBulk}"
-                      GridLinesVisibility="All" CanUserResizeColumns="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220"/>
-                    <DataGridTextColumn Header="Size" Binding="{Binding Size}" Width="90"/>
-                    <DataGridTextColumn Header="Path" Binding="{Binding Path}" Width="*"/>
-                </DataGrid.Columns>
-            </DataGrid>
+            <Grid Height="248" ColumnDefinitions="*,Auto">
+                <DataGrid Grid.Column="0" ItemsSource="{Binding Files}" IsReadOnly="True"
+                          SelectedItem="{Binding SelectedFile, Mode=TwoWay}"
+                          GridLinesVisibility="All" CanUserResizeColumns="True">
+                    <DataGrid.Columns>
+                        <DataGridTextColumn Header="Name" Binding="{Binding Name}" Width="220"/>
+                        <DataGridTextColumn Header="Type" Binding="{Binding Type}" Width="110"/>
+                        <DataGridTextColumn Header="Details" Binding="{Binding Details}" Width="*"/>
+                    </DataGrid.Columns>
+                </DataGrid>
+                <StackPanel Grid.Column="1" Width="140" Margin="8,0,0,0" Spacing="6">
+                    <Button Content="Add file(s)…" Command="{Binding AddFilesCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Add more file(s) to this upload"/>
+                    <Button Content="Edit name" Click="EditName_Click" HorizontalAlignment="Stretch" ToolTip.Tip="Rename this upload (edits the Game Name)"/>
+                    <Button Content="Remove" Command="{Binding RemoveFileCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Remove the selected file from this upload"/>
+                </StackPanel>
+            </Grid>
 
-            <DataGrid ItemsSource="{Binding BulkCards}" Height="248"
-                      IsVisible="{Binding IsBulk}" AutoGenerateColumns="False"
-                      GridLinesVisibility="All" CanUserResizeColumns="True">
-                <DataGrid.Columns>
-                    <DataGridTextColumn Header="Game" Binding="{Binding Game}" Width="*"/>
-                    <DataGridTextColumn Header="ID" Binding="{Binding TitleId}" Width="140"/>
-                    <DataGridTemplateColumn Header="Action" Width="160">
-                        <DataGridTemplateColumn.CellTemplate>
-                            <DataTemplate x:DataType="models:BulkCardRow">
-                                <ComboBox ItemsSource="{x:Static models:BulkCardRow.Modes}"
-                                          SelectedItem="{Binding Mode}" Margin="2" MinWidth="140"/>
-                            </DataTemplate>
-                        </DataGridTemplateColumn.CellTemplate>
-                    </DataGridTemplateColumn>
-                    <DataGridTextColumn Header="File" Binding="{Binding FileName}" IsReadOnly="True" Width="160"/>
-                </DataGrid.Columns>
-            </DataGrid>
-
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Title ID" Width="90" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding TitleId}" Width="240" PlaceholderText="e.g. SLUS-12345 (auto-detected for PlayStation)"/>
-                <Button Content="Detect" Command="{Binding DetectTitleIdCommand}"/>
-            </StackPanel>
-            <StackPanel Orientation="Horizontal" Spacing="8">
-                <TextBlock Text="Game Name" Width="90" VerticalAlignment="Center"/>
-                <TextBox Text="{Binding GameName}" Width="340" PlaceholderText="Shown in your library; required for PC save folders"/>
+            <StackPanel Orientation="Horizontal" Spacing="14">
+                <Border BorderBrush="#33808080" BorderThickness="1" CornerRadius="4" Padding="2"
+                        VerticalAlignment="Top" IsVisible="{Binding HasIconPreview}">
+                    <Image Source="{Binding IconPreview}" Width="128" Height="128" Stretch="Uniform"/>
+                </Border>
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Title ID" Width="90" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding TitleId}" Width="240" PlaceholderText="e.g. SLUS-12345 (auto-detected for PlayStation)"/>
+                        <Button Content="Detect" Command="{Binding DetectTitleIdCommand}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Game Name" Width="90" VerticalAlignment="Center"/>
+                        <TextBox x:Name="GameNameBox" Text="{Binding GameName}" Width="340" PlaceholderText="Shown in your library; required for PC save folders"/>
+                    </StackPanel>
+                </StackPanel>
             </StackPanel>
 
             <TextBlock Text="Description" FontWeight="Bold"/>

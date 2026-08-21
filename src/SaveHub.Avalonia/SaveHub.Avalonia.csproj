@@ -34,6 +34,8 @@
     <PackageReference Include="SaveHub.Core" />
     <PackageReference Include="SaveHub.Hosting" />
     <PackageReference Include="SaveHub.GitHub" />
+    <PackageReference Include="SaveHub.GitLab" />
+    <PackageReference Include="SaveHub.Bitbucket" />
     <PackageReference Include="SaveHub.Supabase" />
     <PackageReference Include="SaveHub.GoogleDrive" />
   </ItemGroup>
@@ -43,6 +45,8 @@
     <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Core\SaveHub.Core.csproj" />
     <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Hosting\SaveHub.Hosting.csproj" />
     <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.GitHub\SaveHub.GitHub.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.GitLab\SaveHub.GitLab.csproj" />
+    <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Bitbucket\SaveHub.Bitbucket.csproj" />
     <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.Supabase\SaveHub.Supabase.csproj" />
     <ProjectReference Include="..\..\..\SaveHub\src\SaveHub.GoogleDrive\SaveHub.GoogleDrive.csproj" />
   </ItemGroup>

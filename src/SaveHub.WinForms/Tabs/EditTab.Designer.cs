@@ -82,6 +82,7 @@ partial class EditTab
         //
         _edList.Location = new Point(12, 48);
         _edList.Size = new Size(600, 300);
+        _edList.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _edList.SelectedIndexChanged += Edit_SelectionChanged;
         //
         // _edIcon
@@ -90,18 +91,21 @@ partial class EditTab
         _edIcon.Size = new Size(150, 150);
         _edIcon.SizeMode = PictureBoxSizeMode.Zoom;
         _edIcon.BorderStyle = BorderStyle.FixedSingle;
+        _edIcon.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         //
         // _edName
         //
         _edName.Location = new Point(620, 202);
         _edName.Size = new Size(150, 60);
         _edName.AutoSize = false;
+        _edName.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         //
         // _replaceBox
         //
         _replaceBox.Text = "Replace selected save";
         _replaceBox.Location = new Point(12, 356);
         _replaceBox.Size = new Size(760, 180);
+        _replaceBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _replaceBox.Controls.Add(new Label { Text = "Description:", Location = new Point(12, 70), AutoSize = true });
         _replaceBox.Controls.Add(_btnBrowse);
         _replaceBox.Controls.Add(_edPath);
@@ -120,6 +124,7 @@ partial class EditTab
         _edPath.Location = new Point(220, 30);
         _edPath.Size = new Size(524, 23);
         _edPath.ReadOnly = true;
+        _edPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         //
         // _edDescription
         //
@@ -127,6 +132,7 @@ partial class EditTab
         _edDescription.Size = new Size(654, 60);
         _edDescription.Multiline = true;
         _edDescription.MaxLength = MaxDescription;
+        _edDescription.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         //
         // _btnUpdate
         //

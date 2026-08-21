@@ -41,6 +41,41 @@ internal sealed class AppController
         return KnownPlatforms.IsNintendo(device);
     }
 
+    // ---------------------------------------------------------------- Cover art cache
+
+    /// <summary>Directory holding the shared SaveHub data (config + cover cache).</summary>
+    public string DataFolderPath => Path.GetDirectoryName(AppServices.Store.Path)!;
+
+    /// <summary>Directory holding cached cover art.</summary>
+    public string CoverCachePath => AppServices.CoverCache.RootDirectory;
+
+    /// <summary>Reads a cached cover for a platform/serial, or null when none is cached.</summary>
+    public byte[]? TryGetCachedCover(string platform, string serial)
+    {
+        return AppServices.CoverCache.TryRead(platform, serial);
+    }
+
+    /// <summary>Caches a user-supplied cover so it is reused for later uploads and previews.</summary>
+    public void CacheUserCover(string platform, string serial, string iconPath)
+    {
+        if (string.IsNullOrWhiteSpace(serial) || string.IsNullOrWhiteSpace(iconPath) || !File.Exists(iconPath))
+        {
+            return;
+        }
+        try
+        {
+            byte[] bytes = File.ReadAllBytes(iconPath);
+            string extension = CoverArtSource.Resolve(platform, serial) is { } source
+                ? source.Extension
+                : Path.GetExtension(iconPath);
+            AppServices.CoverCache.Store(platform, serial, bytes, extension);
+        }
+        catch (IOException)
+        {
+            // Best-effort.
+        }
+    }
+
     // ---------------------------------------------------------------- Backend operations
 
     public Task<IReadOnlyList<string>> ListPlatformsAsync(SaveHubClient client)

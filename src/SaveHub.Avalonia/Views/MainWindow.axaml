@@ -3,11 +3,11 @@
         xmlns:vm="using:SaveHub.Avalonia.ViewModels"
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
-        mc:Ignorable="d" d:DesignWidth="900" d:DesignHeight="640"
+        mc:Ignorable="d" d:DesignWidth="1024" d:DesignHeight="640"
         x:Class="SaveHub.Avalonia.Views.MainWindow"
         x:DataType="vm:MainWindowViewModel"
         Icon="/Assets/icon.ico"
-        Width="900" Height="960"
+        Width="1024" Height="960"
         CanResize="False"
         WindowStartupLocation="CenterScreen"
         Title="SaveHub">
@@ -19,16 +19,12 @@
     <DockPanel>
         <Menu DockPanel.Dock="Top">
             <MenuItem Header="_File">
+                <MenuItem Header="Open _Data Folder" Command="{Binding OpenDataFolderCommand}"/>
+                <MenuItem Header="Open Cover _Cache" Command="{Binding OpenCoverCacheCommand}"/>
+                <Separator/>
                 <MenuItem Header="_Quit" Command="{Binding QuitCommand}"/>
             </MenuItem>
             <MenuItem Header="_Tools">
-                <MenuItem Header="_Upload" Command="{Binding ShowTabCommand}" CommandParameter="0"/>
-                <MenuItem Header="_Download" Command="{Binding ShowTabCommand}" CommandParameter="1"/>
-                <MenuItem Header="_Edit" Command="{Binding ShowTabCommand}" CommandParameter="2"/>
-                <MenuItem Header="_Manage" Command="{Binding ShowTabCommand}" CommandParameter="3"/>
-                <MenuItem Header="_Library" Command="{Binding ShowTabCommand}" CommandParameter="4"/>
-                <MenuItem Header="_Settings" Command="{Binding ShowTabCommand}" CommandParameter="5"/>
-                <Separator/>
                 <MenuItem Header="_Rebuild Library Index" Command="{Binding RebuildLibraryCommand}"/>
             </MenuItem>
             <MenuItem Header="_Help">
@@ -51,6 +47,9 @@
         <TabControl SelectedIndex="{Binding SelectedTabIndex}">
             <TabItem Header="Upload">
                 <ContentControl Content="{Binding Upload}"/>
+            </TabItem>
+            <TabItem Header="Bulk Upload">
+                <ContentControl Content="{Binding BulkUpload}"/>
             </TabItem>
             <TabItem Header="Download">
                 <ContentControl Content="{Binding Download}"/>

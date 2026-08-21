@@ -1,4 +1,5 @@
 ﻿using System.Diagnostics;
+using System.IO;
 using Avalonia;
 using Avalonia.Controls.ApplicationLifetimes;
 using CommunityToolkit.Mvvm.ComponentModel;
@@ -31,6 +32,8 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IShellContext
 
     public UploadViewModel Upload { get; }
 
+    public BulkUploadViewModel BulkUpload { get; }
+
     public DownloadViewModel Download { get; }
 
     public EditViewModel Edit { get; }
@@ -46,12 +49,13 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IShellContext
     public MainWindowViewModel()
     {
         Upload = new UploadViewModel(_controller, this);
+        BulkUpload = new BulkUploadViewModel(_controller, this);
         Download = new DownloadViewModel(_controller, this);
         Edit = new EditViewModel(_controller, this);
         Manage = new ManageViewModel(_controller, this);
         Library = new LibraryViewModel(_controller, this);
         Settings = new SettingsViewModel(_controller, this);
-        _tabs = [Upload, Download, Edit, Manage, Library, Settings];
+        _tabs = [Upload, BulkUpload, Download, Edit, Manage, Library, Settings];
     }
 
     internal void AttachDialogs(IDialogService dialogs)
@@ -173,15 +177,6 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IShellContext
     }
 
     [RelayCommand]
-    private void ShowTab(string? index)
-    {
-        if (int.TryParse(index, out int value))
-        {
-            SelectedTabIndex = value;
-        }
-    }
-
-    [RelayCommand]
     private async Task RebuildLibrary()
     {
         SelectedTabIndex = 4;
@@ -194,6 +189,31 @@ public sealed partial class MainWindowViewModel : ViewModelBase, IShellContext
         if (Application.Current?.ApplicationLifetime is IClassicDesktopStyleApplicationLifetime desktop)
         {
             desktop.Shutdown();
+        }
+    }
+
+    [RelayCommand]
+    private void OpenDataFolder()
+    {
+        OpenFolder(_controller.DataFolderPath);
+    }
+
+    [RelayCommand]
+    private void OpenCoverCache()
+    {
+        OpenFolder(_controller.CoverCachePath);
+    }
+
+    private void OpenFolder(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            _ = Dialogs.ShowMessageAsync("SaveHub", ex.Message);
         }
     }
 

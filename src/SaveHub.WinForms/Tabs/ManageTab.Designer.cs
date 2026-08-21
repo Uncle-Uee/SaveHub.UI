@@ -100,6 +100,7 @@ partial class ManageTab
         //
         _mgList.Location = new Point(12, 76);
         _mgList.Size = new Size(600, 496);
+        _mgList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         _mgList.MultiSelect = true;
         _mgList.SelectedIndexChanged += Manage_SelectionChanged;
         //
@@ -109,24 +110,28 @@ partial class ManageTab
         _mgIcon.Size = new Size(150, 150);
         _mgIcon.SizeMode = PictureBoxSizeMode.Zoom;
         _mgIcon.BorderStyle = BorderStyle.FixedSingle;
+        _mgIcon.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         //
         // _mgName
         //
         _mgName.Location = new Point(620, 232);
         _mgName.Size = new Size(150, 40);
         _mgName.AutoSize = false;
+        _mgName.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         //
         // _lblDetails
         //
         _lblDetails.Location = new Point(620, 280);
         _lblDetails.Size = new Size(152, 290);
         _lblDetails.AutoSize = false;
+        _lblDetails.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Right;
         //
         // _btnDownload
         //
         _btnDownload.Text = "Download Selected";
         _btnDownload.Location = new Point(12, 584);
         _btnDownload.Size = new Size(150, 30);
+        _btnDownload.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         _btnDownload.Click += Manage_DownloadSelected;
         //
         // _btnDelete
@@ -134,6 +139,7 @@ partial class ManageTab
         _btnDelete.Text = "Delete Selected";
         _btnDelete.Location = new Point(172, 584);
         _btnDelete.Size = new Size(150, 30);
+        _btnDelete.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         _btnDelete.Click += Manage_DeleteSelected;
         //
         // _btnDeleteAll
@@ -141,6 +147,7 @@ partial class ManageTab
         _btnDeleteAll.Text = "Delete All (game)";
         _btnDeleteAll.Location = new Point(332, 584);
         _btnDeleteAll.Size = new Size(150, 30);
+        _btnDeleteAll.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         _btnDeleteAll.Click += Manage_DeleteAll;
         //
         // _btnRename
@@ -148,6 +155,7 @@ partial class ManageTab
         _btnRename.Text = "Rename Game";
         _btnRename.Location = new Point(492, 584);
         _btnRename.Size = new Size(150, 30);
+        _btnRename.Anchor = AnchorStyles.Bottom | AnchorStyles.Left;
         _btnRename.Click += Manage_Rename;
         //
         // ManageTab

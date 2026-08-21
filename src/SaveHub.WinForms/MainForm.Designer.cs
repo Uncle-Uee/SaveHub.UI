@@ -13,6 +13,7 @@ public sealed partial class MainForm
 
     private TabControl _tabs;
     private TabPage _tabUpload;
+    private TabPage _tabBulkUpload;
     private TabPage _tabDownload;
     private TabPage _tabEdit;
     private TabPage _tabManage;
@@ -20,6 +21,7 @@ public sealed partial class MainForm
     private TabPage _tabSettings;
 
     private UploadTab _uploadTab;
+    private BulkUploadTab _bulkUploadTab;
     private DownloadTab _downloadTab;
     private EditTab _editTab;
     private ManageTab _manageTab;
@@ -33,13 +35,9 @@ public sealed partial class MainForm
     private MenuStrip _menu;
     private ToolStripMenuItem _miFile;
     private ToolStripMenuItem _miQuit;
+    private ToolStripMenuItem _miOpenData;
+    private ToolStripMenuItem _miOpenCache;
     private ToolStripMenuItem _miTools;
-    private ToolStripMenuItem _miUpload;
-    private ToolStripMenuItem _miDownload;
-    private ToolStripMenuItem _miEdit;
-    private ToolStripMenuItem _miManage;
-    private ToolStripMenuItem _miLibrary;
-    private ToolStripMenuItem _miSettings;
     private ToolStripMenuItem _miRebuild;
     private ToolStripMenuItem _miHelp;
     private ToolStripMenuItem _miDocs;
@@ -61,6 +59,8 @@ public sealed partial class MainForm
         _tabs = new TabControl();
         _tabUpload = new TabPage();
         _uploadTab = new UploadTab();
+        _tabBulkUpload = new TabPage();
+        _bulkUploadTab = new BulkUploadTab();
         _tabDownload = new TabPage();
         _downloadTab = new DownloadTab();
         _tabEdit = new TabPage();
@@ -77,13 +77,9 @@ public sealed partial class MainForm
         _menu = new MenuStrip();
         _miFile = new ToolStripMenuItem();
         _miQuit = new ToolStripMenuItem();
+        _miOpenData = new ToolStripMenuItem();
+        _miOpenCache = new ToolStripMenuItem();
         _miTools = new ToolStripMenuItem();
-        _miUpload = new ToolStripMenuItem();
-        _miDownload = new ToolStripMenuItem();
-        _miEdit = new ToolStripMenuItem();
-        _miManage = new ToolStripMenuItem();
-        _miLibrary = new ToolStripMenuItem();
-        _miSettings = new ToolStripMenuItem();
         _miRebuild = new ToolStripMenuItem();
         _miHelp = new ToolStripMenuItem();
         _miDocs = new ToolStripMenuItem();
@@ -93,6 +89,7 @@ public sealed partial class MainForm
         pbar = new ProgressBar();
         _tabs.SuspendLayout();
         _tabUpload.SuspendLayout();
+        _tabBulkUpload.SuspendLayout();
         _tabDownload.SuspendLayout();
         _tabEdit.SuspendLayout();
         _tabManage.SuspendLayout();
@@ -104,6 +101,7 @@ public sealed partial class MainForm
         // _tabs
         // 
         _tabs.Controls.Add(_tabUpload);
+        _tabs.Controls.Add(_tabBulkUpload);
         _tabs.Controls.Add(_tabDownload);
         _tabs.Controls.Add(_tabEdit);
         _tabs.Controls.Add(_tabManage);
@@ -133,6 +131,23 @@ public sealed partial class MainForm
         _uploadTab.Name = "_uploadTab";
         _uploadTab.Size = new Size(783, 685);
         _uploadTab.TabIndex = 0;
+        // 
+        // _tabBulkUpload
+        // 
+        _tabBulkUpload.Controls.Add(_bulkUploadTab);
+        _tabBulkUpload.Location = new Point(4, 24);
+        _tabBulkUpload.Name = "_tabBulkUpload";
+        _tabBulkUpload.Size = new Size(783, 685);
+        _tabBulkUpload.TabIndex = 6;
+        _tabBulkUpload.Text = "Bulk Upload";
+        // 
+        // _bulkUploadTab
+        // 
+        _bulkUploadTab.Dock = DockStyle.Fill;
+        _bulkUploadTab.Location = new Point(0, 0);
+        _bulkUploadTab.Name = "_bulkUploadTab";
+        _bulkUploadTab.Size = new Size(783, 685);
+        _bulkUploadTab.TabIndex = 0;
         // 
         // _tabDownload
         // 
@@ -264,29 +279,15 @@ public sealed partial class MainForm
         // _menu
         // 
         _miFile.Text = "&File";
-        _miFile.DropDownItems.Add(_miQuit);
+        _miFile.DropDownItems.AddRange(new ToolStripItem[] { _miOpenData, _miOpenCache, new ToolStripSeparator(), _miQuit });
+        _miOpenData.Text = "Open &Data Folder";
+        _miOpenData.Click += Menu_OpenDataFolder;
+        _miOpenCache.Text = "Open Cover &Cache";
+        _miOpenCache.Click += Menu_OpenCoverCache;
         _miQuit.Text = "&Quit";
         _miQuit.Click += Menu_Quit;
         _miTools.Text = "&Tools";
-        _miTools.DropDownItems.AddRange(new ToolStripItem[] { _miUpload, _miDownload, _miEdit, _miManage, _miLibrary, _miSettings, new ToolStripSeparator(), _miRebuild });
-        _miUpload.Text = "&Upload";
-        _miUpload.Tag = 0;
-        _miUpload.Click += Menu_ShowTab;
-        _miDownload.Text = "&Download";
-        _miDownload.Tag = 1;
-        _miDownload.Click += Menu_ShowTab;
-        _miEdit.Text = "&Edit";
-        _miEdit.Tag = 2;
-        _miEdit.Click += Menu_ShowTab;
-        _miManage.Text = "&Manage";
-        _miManage.Tag = 3;
-        _miManage.Click += Menu_ShowTab;
-        _miLibrary.Text = "&Library";
-        _miLibrary.Tag = 4;
-        _miLibrary.Click += Menu_ShowTab;
-        _miSettings.Text = "&Settings";
-        _miSettings.Tag = 5;
-        _miSettings.Click += Menu_ShowTab;
+        _miTools.DropDownItems.Add(_miRebuild);
         _miRebuild.Text = "&Rebuild Library Index";
         _miRebuild.Click += Menu_RebuildLibrary;
         _miHelp.Text = "&Help";
@@ -307,19 +308,20 @@ public sealed partial class MainForm
         // 
         // MainForm
         // 
-        ClientSize = new Size(791, 741);
+        ClientSize = new Size(1024, 741);
         Controls.Add(_tabs);
         Controls.Add(_bottom);
         Controls.Add(_menu);
         MainMenuStrip = _menu;
         FormBorderStyle = FormBorderStyle.FixedSingle;
         MaximizeBox = false;
-        MaximumSize = new Size(880, 800);
+        MaximumSize = new Size(1046, 820);
         Name = "MainForm";
         StartPosition = FormStartPosition.CenterScreen;
         Text = "SaveHub";
         _tabs.ResumeLayout(false);
         _tabUpload.ResumeLayout(false);
+        _tabBulkUpload.ResumeLayout(false);
         _tabDownload.ResumeLayout(false);
         _tabEdit.ResumeLayout(false);
         _tabManage.ResumeLayout(false);

@@ -20,9 +20,9 @@ public sealed partial class MainForm : Form, IShellContext
     {
         InitializeComponent();
 
-        Icon = System.Drawing.Icon.ExtractAssociatedIcon(Application.ExecutablePath);
+        Icon = LoadAppIcon() ?? Icon;
 
-        _views = [_uploadTab, _downloadTab, _editTab, _manageTab, _libraryTab, _settingsTab];
+        _views = [_uploadTab, _bulkUploadTab, _downloadTab, _editTab, _manageTab, _libraryTab, _settingsTab];
         foreach (ITabView view in _views)
         {
             view.Initialize(_controller, this);
@@ -112,12 +112,14 @@ public sealed partial class MainForm : Form, IShellContext
         Close();
     }
 
-    private void Menu_ShowTab(object? sender, EventArgs e)
+    private void Menu_OpenDataFolder(object? sender, EventArgs e)
     {
-        if (sender is ToolStripMenuItem item && item.Tag is int index && index >= 0 && index < _tabs.TabCount)
-        {
-            _tabs.SelectedIndex = index;
-        }
+        OpenFolder(_controller.DataFolderPath);
+    }
+
+    private void Menu_OpenCoverCache(object? sender, EventArgs e)
+    {
+        OpenFolder(_controller.CoverCachePath);
     }
 
     private async void Menu_RebuildLibrary(object? sender, EventArgs e)
@@ -143,6 +145,32 @@ public sealed partial class MainForm : Form, IShellContext
     }
 
     // ---------------------------------------------------------------- Helpers
+
+    private static System.Drawing.Icon? LoadAppIcon()
+    {
+        try
+        {
+            using Stream? stream = System.Reflection.Assembly.GetExecutingAssembly().GetManifestResourceStream("SaveHub.icon.ico");
+            return stream is null ? null : new System.Drawing.Icon(stream);
+        }
+        catch
+        {
+            return null;
+        }
+    }
+
+    private void OpenFolder(string path)
+    {
+        try
+        {
+            Directory.CreateDirectory(path);
+            Process.Start(new ProcessStartInfo(path) { UseShellExecute = true });
+        }
+        catch (Exception ex)
+        {
+            MessageBox.Show(this, ex.Message, "SaveHub", MessageBoxButtons.OK, MessageBoxIcon.Warning);
+        }
+    }
 
     private void OpenUrl(string url)
     {

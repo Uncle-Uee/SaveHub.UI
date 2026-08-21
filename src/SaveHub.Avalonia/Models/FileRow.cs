@@ -1,4 +1,4 @@
 namespace SaveHub.Avalonia.Models;
 
-/// <summary>A selected upload file shown in the Upload tab's file grid.</summary>
-public sealed record FileRow(string Name, string Size, string Path);
+/// <summary>A staged upload item shown in the Upload tab's list.</summary>
+public sealed record FileRow(string Name, string Type, string Details);

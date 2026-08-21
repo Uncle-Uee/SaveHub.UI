@@ -6,6 +6,8 @@
     <PackageVersion Include="SaveHub.Core" Version="1.0.0" />
     <PackageVersion Include="SaveHub.Hosting" Version="1.0.0" />
     <PackageVersion Include="SaveHub.GitHub" Version="1.0.0" />
+    <PackageVersion Include="SaveHub.GitLab" Version="1.0.0" />
+    <PackageVersion Include="SaveHub.Bitbucket" Version="1.0.0" />
     <PackageVersion Include="SaveHub.Supabase" Version="1.0.0" />
     <PackageVersion Include="SaveHub.GoogleDrive" Version="1.0.0" />
   </ItemGroup>

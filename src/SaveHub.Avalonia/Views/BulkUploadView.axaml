@@ -1,0 +1,78 @@
+<UserControl xmlns="https://github.com/avaloniaui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+             xmlns:vm="using:SaveHub.Avalonia.ViewModels"
+             xmlns:models="using:SaveHub.Avalonia.Models"
+             mc:Ignorable="d" d:DesignWidth="980" d:DesignHeight="600"
+             x:Class="SaveHub.Avalonia.Views.BulkUploadView"
+             x:DataType="vm:BulkUploadViewModel">
+
+    <DockPanel Margin="14">
+        <TextBlock DockPanel.Dock="Top" TextWrapping="Wrap" Margin="0,0,0,10"
+                   Text="Add a parent folder (e.g. My Games) to list each game, or add memory-card files. Each folder uploads as a save folder; each file as a memory card. Untick items to exclude them, and set a per-item platform and icon."/>
+
+        <Button DockPanel.Dock="Bottom" Content="Upload All" Command="{Binding SubmitCommand}"
+                HorizontalAlignment="Left" MinWidth="140" Margin="0,10,0,0"
+                ToolTip.Tip="Upload every ticked item"/>
+
+        <Border DockPanel.Dock="Bottom" IsVisible="{Binding HasBulkSelection}"
+                BorderBrush="#33808080" BorderThickness="0,1,0,0" Padding="0,10,0,0" Margin="0,10,0,0">
+            <StackPanel Orientation="Horizontal" Spacing="14">
+                <Border BorderBrush="#33808080" BorderThickness="1" CornerRadius="4" Padding="2" VerticalAlignment="Top">
+                    <Image Source="{Binding BulkCoverPreview}" Width="120" Height="120" Stretch="Uniform"/>
+                </Border>
+                <StackPanel Spacing="8">
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Title ID" Width="80" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding SelectedBulkNode.TitleId}" Width="220" PlaceholderText="e.g. SLUS-12345 (auto-detected)"/>
+                        <Button Content="Detect" Command="{Binding DetectBulkTitleIdCommand}"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Game Name" Width="80" VerticalAlignment="Center"/>
+                        <TextBox Text="{Binding SelectedBulkNode.Name}" Width="330"/>
+                    </StackPanel>
+                    <StackPanel Orientation="Horizontal" Spacing="8">
+                        <TextBlock Text="Description" Width="80" VerticalAlignment="Top" Margin="0,4,0,0"/>
+                        <TextBox Text="{Binding SelectedBulkNode.Description}" Width="330" Height="56" AcceptsReturn="True" TextWrapping="Wrap"/>
+                    </StackPanel>
+                </StackPanel>
+            </StackPanel>
+        </Border>
+
+        <Grid ColumnDefinitions="*,Auto">
+            <TreeView Grid.Column="0" ItemsSource="{Binding Roots}"
+                      SelectedItem="{Binding SelectedBulkNode, Mode=TwoWay}">
+                <TreeView.Styles>
+                    <Style Selector="TreeViewItem">
+                        <Setter Property="IsExpanded" Value="{ReflectionBinding IsExpanded, Mode=TwoWay}"/>
+                    </Style>
+                </TreeView.Styles>
+                <TreeView.ItemTemplate>
+                    <TreeDataTemplate ItemsSource="{Binding Children}" x:DataType="models:BulkNode">
+                        <StackPanel Orientation="Horizontal" Spacing="6">
+                            <CheckBox IsChecked="{Binding IsIncluded}" VerticalAlignment="Center" ToolTip.Tip="Include this item in the upload"/>
+                            <TextBlock Text="{Binding Name}" VerticalAlignment="Center" IsVisible="{Binding !IsEditing}"/>
+                            <TextBox Text="{Binding Name}" MinWidth="200" IsVisible="{Binding IsEditing}"/>
+                            <TextBlock Text="&#x1F5BC;" VerticalAlignment="Center" IsVisible="{Binding HasIcon}" ToolTip.Tip="Custom icon set"/>
+                            <ComboBox ItemsSource="{x:Static models:BulkNode.Platforms}"
+                                      SelectedItem="{Binding Platform}"
+                                      IsVisible="{Binding IsUploadUnit}" MinWidth="110" Margin="8,0,0,0"
+                                      ToolTip.Tip="Platform this upload goes to"/>
+                        </StackPanel>
+                    </TreeDataTemplate>
+                </TreeView.ItemTemplate>
+            </TreeView>
+
+            <StackPanel Grid.Column="1" Width="150" Margin="10,0,0,0" Spacing="6">
+                <Button Content="Add folder&#x2026;" Command="{Binding AddFolderCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Add a parent folder (each sub-folder = a game) or a single game folder"/>
+                <Button Content="Add file(s)&#x2026;" Command="{Binding AddFilesCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Add memory-card file(s)"/>
+                <Button Content="Edit name" Command="{Binding EditNameCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Rename the selected item (the repo game folder)"/>
+                <Button Content="Remove" Command="{Binding RemoveCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Remove the selected item from the list (not from disk)"/>
+                <Button Content="Set icon&#x2026;" Command="{Binding SetIconCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Pick a cover icon for the selected folder/file"/>
+                <Separator/>
+                <ToggleButton Content="Expand all" IsChecked="{Binding BulkExpanded}" HorizontalAlignment="Stretch" ToolTip.Tip="Expand or collapse the whole tree"/>
+            </StackPanel>
+        </Grid>
+    </DockPanel>
+</UserControl>

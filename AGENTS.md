@@ -11,11 +11,30 @@ no API source.
   (Upload/Download/Edit/Manage/Library/Settings). Android/Browser heads planned later.
 
 ## Tabs (both UIs, kept in parity)
-- **Upload / Download / Edit** — submit, fetch, and replace saves. Upload has a
-  **Bulk cards** mode: pick a folder of memory cards and choose per card, via a
-  dropdown, whether to **Upload + Index** (make `NN.zip` and add an index row) or
-  **Index only**; all cards are catalogued in `PLATFORM/!index/README.md`
-  (`UpdateMemoryCardIndexAsync`). A **PC** save-folder upload requires a game name.
+- **Upload** — stage **up to 10 memory cards OR one folder** (save folder / save state) and upload
+  them in one go. Each staged item keeps its **own metadata** (device, save type, title id, game
+  name, description, cover icon); selecting a row in the list reloads that item's data. Metadata is
+  mirrored to a session scratch file (`%APPDATA%/SaveHub/pending-upload.json`, cleared on launch and
+  after upload) so switching between cards never loses data. Upload has an Add/Edit/Remove file
+  toolbar and previews the selected cover icon. Single uploads go to their game folders only and
+  **never** touch the `!index` catalog (that is bulk-only). A **PC** save-folder upload requires a
+  game name. PS1/PS2 memory cards auto-select the console (broadened detection covers raw plus
+  wrapped `.gme`/`.vgs`/`.vmp` images); PS3+ folder saves auto-detect the console from `PARAM.SFO`
+  (or the title-id in the folder name), falling back to a manual device pick. Both UIs
+  preview the cover for the selected item (user icon → cached cover → a generated “No Cover”
+  placeholder); user-supplied covers are cached on upload like auto-fetched ones.
+- **Download / Edit** — fetch and replace a single save; show the game name and a cover-icon preview.
+- **Bulk Upload** — add a parent folder (each sub-folder = a game) or files into a collapsible
+  **tree** with a right-side toolbar (Add folder/file, Edit name, Remove, **Set icon…**,
+  Expand/Collapse toggle, **per-node platform**). Each top-level folder uploads as a save folder
+  (`PLATFORM/<GameName>/NN-folder.zip`); each file as a memory card that also updates the platform's
+  `!index` catalog (`UpdateMemoryCardIndexAsync`). A folder that itself holds PS1/PS2 memory cards
+  is kept as a parent node with each card listed under it and uploaded/indexed individually (game
+  name and title id read from each card). Checkboxes exclude items (non-destructive); Edit
+  renames only the repo game folder; Set icon gives a per-folder cover. Selecting a top-level node
+  shows a **Details** panel (cover preview + **Detect** Title ID, Game Name, Description) whose
+  values are used on upload. WinForms `BulkUploadTab` (`TreeView` + `ToolStrip` + Details group box);
+  Avalonia `BulkUploadViewModel`/`View` (`TreeView` + button bar + Details panel, `BulkNode`).
 - **Manage** — bulk delete/download, per-save details, game+save filters, delete-all,
   and **Rename game** (`SetGameNameAsync`).
 - **Library** — manufacturer → platform → game tree from the root `library.json`
@@ -25,8 +44,9 @@ no API source.
   Supabase, Google Drive (each with its own panel). The repository field is left
   blank for new users; the default name shows only as a placeholder hint.
 - Edit/Manage game pickers show `Name (id)` via `GetGameNamesAsync`.
-- Both UIs have a **menu bar**: File (Quit), Tools (switch tabs + **Rebuild Library
-  Index** → updates the backend index and local cache), Help (README/source/donate/about).
+- Both UIs have a **menu bar**: File (**Open Data Folder**, **Open Cover Cache**, Quit), Tools
+  (**Rebuild Library Index** → updates the backend index and local cache), Help
+  (README/source/donate/about).
   Avalonia = `Menu`; WinForms = `MenuStrip`.
 
 ## Referencing the API
@@ -36,6 +56,15 @@ no API source.
   `dotnet build -p:UseLocalSaveHub=true` (switches to `ProjectReference`).
 - Before anything is published to NuGet: build with `-p:UseLocalSaveHub=true`, or
   run `..\SaveHub\pack-api.ps1` then restore.
+- A fresh clone (no sibling `..\SaveHub`) restores `SaveHub.*` from NuGet.org — the
+  `savehub-local` feed is only a dev convenience and is skipped (NU1801) when absent.
+
+## Releasing
+- `.github/workflows/release.yml` builds the WinForms and Avalonia Windows apps
+  (win-x64, self-contained single-file) on a published GitHub Release and uploads the
+  zips to it. It restores `SaveHub.*` from NuGet.org, so **publish the SaveHub API
+  packages first** (matching the versions in `Directory.Packages.props`), then publish
+  the UI release. Linux/macOS/Android heads come after the first Windows release.
 
 ## Conventions
 - Code style: see `.github/copilot-instructions.md`.

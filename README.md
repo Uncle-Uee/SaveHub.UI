@@ -19,7 +19,17 @@ packages.
 
 ## Tabs
 
-- **Upload / Download / Edit** — submit saves, fetch them, and replace an existing save.
+- **Upload** — stage **up to 10 memory cards or one folder** in one go. Each staged item
+  keeps its **own** metadata (device, save type, title id, game name, description,
+  cover), and selecting an item shows its cover (your icon, a cached cover, or a
+  generated “No Cover” placeholder). Consoles are auto-detected where possible; single
+  uploads go to their game folders only (never the bulk `!index` catalog).
+- **Bulk Upload** — add a parent folder (each sub-folder = a game) or many files into a
+  tree and upload them together, updating each platform's memory-card index. A folder that holds
+  PS1/PS2 memory cards is kept as a parent node with each card listed under it and uploaded (and
+  indexed) individually, with the game name and title id read from each card. Select a top-level
+  item to Detect its Title ID and set the Game Name, Description, and cover in a Details panel.
+- **Download / Edit** — fetch a save, or replace an existing save in place.
 - **Manage** — multi-select **bulk download** and delete, a per-save **details** panel,
   **filter** boxes for games and saves, **Delete All** for a game, and **Rename game**.
 - **Library** — a manufacturer → platform → game tree read from the backup's root
@@ -28,7 +38,9 @@ packages.
 - **Settings** — pick and configure a storage provider (see below).
 
 Game pickers show `Name (id)`; names come from each platform's index — set a **Game
-Title** on upload (or use **Rename game**) so saves are easy to identify.
+Title** on upload (or use **Rename game**) so saves are easy to identify. The **File**
+menu has **Open Data Folder** and **Open Cover Cache** to reveal the shared SaveHub
+data (config + cached cover art) on disk.
 
 ## Build
 

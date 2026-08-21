@@ -10,8 +10,9 @@ partial class UploadTab
     private Button _btnIcon;
     private TextBox _upPath;
     private ListView _upFiles;
-    private CheckBox _upBulk;
-    private DataGridView _bulkGrid;
+    private Button _upAdd;
+    private Button _upEdit;
+    private Button _upRemove;
 
     private GroupBox _detailsBox;
     private TextBox _upGameName;
@@ -29,6 +30,9 @@ partial class UploadTab
     private RadioButton _rbSaveFolder;
 
     private Button _btnUpload;
+    private Label _upIconLabel;
+    private PictureBox _upIconPreview;
+    private ToolTip _tips;
 
     protected override void Dispose(bool disposing)
     {
@@ -47,8 +51,9 @@ partial class UploadTab
         _btnIcon = new Button();
         _upPath = new TextBox();
         _upFiles = new ListView();
-        _upBulk = new CheckBox();
-        _bulkGrid = new DataGridView();
+        _upAdd = new Button();
+        _upEdit = new Button();
+        _upRemove = new Button();
         _detailsBox = new GroupBox();
         _btnDetect = new Button();
         _upGameName = new TextBox();
@@ -62,6 +67,9 @@ partial class UploadTab
         _rbSaveState = new RadioButton();
         _rbSaveFolder = new RadioButton();
         _btnUpload = new Button();
+        _upIconLabel = new Label();
+        _upIconPreview = new PictureBox();
+        _tips = new ToolTip();
         _saveBox.SuspendLayout();
         _detailsBox.SuspendLayout();
         _deviceBox.SuspendLayout();
@@ -73,13 +81,15 @@ partial class UploadTab
         _saveBox.Controls.Add(_btnBrowse);
         _saveBox.Controls.Add(_btnBrowseFolder);
         _saveBox.Controls.Add(_btnIcon);
-        _saveBox.Controls.Add(_upBulk);
         _saveBox.Controls.Add(_upPath);
-        _saveBox.Controls.Add(_bulkGrid);
         _saveBox.Controls.Add(_upFiles);
+        _saveBox.Controls.Add(_upAdd);
+        _saveBox.Controls.Add(_upEdit);
+        _saveBox.Controls.Add(_upRemove);
         _saveBox.Location = new Point(8, 8);
         _saveBox.Name = "_saveBox";
-        _saveBox.Size = new Size(500, 300);
+        _saveBox.Size = new Size(720, 300);
+        _saveBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _saveBox.TabIndex = 0;
         _saveBox.TabStop = false;
         _saveBox.Text = "Save";
@@ -116,38 +126,48 @@ partial class UploadTab
         _upPath.Location = new Point(12, 60);
         _upPath.Name = "_upPath";
         _upPath.ReadOnly = true;
-        _upPath.Size = new Size(476, 23);
+        _upPath.Size = new Size(696, 23);
+        _upPath.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _upPath.TabIndex = 3;
         // 
         // _upFiles
         // 
         _upFiles.Location = new Point(12, 92);
         _upFiles.Name = "_upFiles";
-        _upFiles.Size = new Size(476, 196);
+        _upFiles.Size = new Size(616, 196);
+        _upFiles.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         _upFiles.TabIndex = 4;
         _upFiles.UseCompatibleStateImageBehavior = false;
         // 
-        // _upBulk
+        // _upAdd
         // 
-        _upBulk.AutoSize = true;
-        _upBulk.Location = new Point(360, 29);
-        _upBulk.Name = "_upBulk";
-        _upBulk.Size = new Size(120, 19);
-        _upBulk.TabIndex = 5;
-        _upBulk.Text = "Bulk cards";
-        _upBulk.CheckedChanged += Upload_BulkChanged;
+        _upAdd.Location = new Point(636, 92);
+        _upAdd.Name = "_upAdd";
+        _upAdd.Size = new Size(72, 26);
+        _upAdd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        _upAdd.TabIndex = 5;
+        _upAdd.Text = "Add";
+        _upAdd.Click += Upload_AddFiles;
         // 
-        // _bulkGrid
+        // _upEdit
         // 
-        _bulkGrid.AllowUserToAddRows = false;
-        _bulkGrid.AllowUserToDeleteRows = false;
-        _bulkGrid.ColumnHeadersHeightSizeMode = DataGridViewColumnHeadersHeightSizeMode.AutoSize;
-        _bulkGrid.Location = new Point(12, 92);
-        _bulkGrid.Name = "_bulkGrid";
-        _bulkGrid.RowHeadersVisible = false;
-        _bulkGrid.Size = new Size(476, 196);
-        _bulkGrid.TabIndex = 6;
-        _bulkGrid.Visible = false;
+        _upEdit.Location = new Point(636, 124);
+        _upEdit.Name = "_upEdit";
+        _upEdit.Size = new Size(72, 26);
+        _upEdit.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        _upEdit.TabIndex = 6;
+        _upEdit.Text = "Edit";
+        _upEdit.Click += Upload_EditName;
+        // 
+        // _upRemove
+        // 
+        _upRemove.Location = new Point(636, 156);
+        _upRemove.Name = "_upRemove";
+        _upRemove.Size = new Size(72, 26);
+        _upRemove.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        _upRemove.TabIndex = 7;
+        _upRemove.Text = "Remove";
+        _upRemove.Click += Upload_RemoveFile;
         // 
         // _detailsBox
         // 
@@ -158,16 +178,18 @@ partial class UploadTab
         _detailsBox.Controls.Add(_upDescCount);
         _detailsBox.Location = new Point(8, 314);
         _detailsBox.Name = "_detailsBox";
-        _detailsBox.Size = new Size(500, 236);
+        _detailsBox.Size = new Size(720, 236);
+        _detailsBox.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _detailsBox.TabIndex = 1;
         _detailsBox.TabStop = false;
         _detailsBox.Text = "Details";
         // 
         // _btnDetect
         // 
-        _btnDetect.Location = new Point(378, 57);
+        _btnDetect.Location = new Point(598, 57);
         _btnDetect.Name = "_btnDetect";
         _btnDetect.Size = new Size(102, 25);
+        _btnDetect.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnDetect.TabIndex = 3;
         _btnDetect.Text = "Detect";
         _btnDetect.Click += Upload_DetectTitleId;
@@ -176,9 +198,10 @@ partial class UploadTab
         // 
         _upGameName.Location = new Point(120, 24);
         _upGameName.Name = "_upGameName";
-        _upGameName.Size = new Size(360, 23);
+        _upGameName.Size = new Size(580, 23);
+        _upGameName.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _upGameName.TabIndex = 4;
-        _upGameName.PlaceholderText = "Game name — shown in your library; required for PC save folders";
+        _upGameName.PlaceholderText = "Game name \u2014 shown in your library; required for PC save folders";
         // 
         // _upTitleId
         // 
@@ -194,9 +217,10 @@ partial class UploadTab
         _upDescription.Multiline = true;
         _upDescription.Name = "_upDescription";
         _upDescription.ScrollBars = ScrollBars.Vertical;
-        _upDescription.Size = new Size(360, 96);
+        _upDescription.Size = new Size(580, 96);
+        _upDescription.Anchor = AnchorStyles.Top | AnchorStyles.Left | AnchorStyles.Right;
         _upDescription.TabIndex = 6;
-        _upDescription.PlaceholderText = "Describe this save (e.g. ‘Chapter 5, all upgrades’)";
+        _upDescription.PlaceholderText = "Describe this save (e.g. \u2018Chapter 5, all upgrades\u2019)";
         _upDescription.TextChanged += Upload_DescriptionChanged;
         // 
         // _upDescCount
@@ -211,9 +235,10 @@ partial class UploadTab
         // _deviceBox
         // 
         _deviceBox.Controls.Add(_devicePanel);
-        _deviceBox.Location = new Point(516, 8);
+        _deviceBox.Location = new Point(740, 8);
         _deviceBox.Name = "_deviceBox";
         _deviceBox.Size = new Size(260, 300);
+        _deviceBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _deviceBox.TabIndex = 2;
         _deviceBox.TabStop = false;
         _deviceBox.Text = "Device Type";
@@ -225,6 +250,7 @@ partial class UploadTab
         _devicePanel.Location = new Point(10, 20);
         _devicePanel.Name = "_devicePanel";
         _devicePanel.Size = new Size(244, 270);
+        _devicePanel.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         _devicePanel.TabIndex = 0;
         _devicePanel.WrapContents = false;
         // 
@@ -233,9 +259,10 @@ partial class UploadTab
         _saveTypeBox.Controls.Add(_rbMemoryCard);
         _saveTypeBox.Controls.Add(_rbSaveState);
         _saveTypeBox.Controls.Add(_rbSaveFolder);
-        _saveTypeBox.Location = new Point(516, 320);
+        _saveTypeBox.Location = new Point(740, 320);
         _saveTypeBox.Name = "_saveTypeBox";
         _saveTypeBox.Size = new Size(260, 100);
+        _saveTypeBox.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _saveTypeBox.TabIndex = 3;
         _saveTypeBox.TabStop = false;
         _saveTypeBox.Text = "Save Type";
@@ -271,12 +298,45 @@ partial class UploadTab
         // 
         // _btnUpload
         // 
-        _btnUpload.Location = new Point(516, 524);
+        _btnUpload.Location = new Point(740, 600);
         _btnUpload.Name = "_btnUpload";
         _btnUpload.Size = new Size(260, 26);
+        _btnUpload.Anchor = AnchorStyles.Bottom | AnchorStyles.Right;
         _btnUpload.TabIndex = 4;
         _btnUpload.Text = "Upload";
         _btnUpload.Click += Upload_Submit;
+        // 
+        // _upIconLabel
+        // 
+        _upIconLabel.AutoSize = true;
+        _upIconLabel.Location = new Point(806, 432);
+        _upIconLabel.Name = "_upIconLabel";
+        _upIconLabel.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        _upIconLabel.Text = "Selected icon";
+        _upIconLabel.Visible = false;
+        // 
+        // _upIconPreview
+        // 
+        _upIconPreview.BorderStyle = BorderStyle.FixedSingle;
+        _upIconPreview.Location = new Point(806, 452);
+        _upIconPreview.Name = "_upIconPreview";
+        _upIconPreview.Size = new Size(128, 128);
+        _upIconPreview.Anchor = AnchorStyles.Top | AnchorStyles.Right;
+        _upIconPreview.SizeMode = PictureBoxSizeMode.Zoom;
+        _upIconPreview.TabStop = false;
+        _upIconPreview.Visible = false;
+        // 
+        // tooltips
+        // 
+        _tips.SetToolTip(_btnBrowse, "Pick the save file(s) to upload");
+        _tips.SetToolTip(_btnBrowseFolder, "Pick a save folder to upload");
+        _tips.SetToolTip(_btnIcon, "Pick a cover image for this game (shown on the right)");
+        _tips.SetToolTip(_btnDetect, "Detect the title id / game name from the selected save");
+        _tips.SetToolTip(_upAdd, "Add more file(s) to this upload");
+        _tips.SetToolTip(_upEdit, "Rename this upload (edits the Game Name)");
+        _tips.SetToolTip(_upRemove, "Remove the selected file from this upload");
+        _tips.SetToolTip(_upGameName, "Shown in your library; required for PC save folders");
+        _tips.SetToolTip(_upTitleId, "e.g. SLUS-12345 (auto-detected for PlayStation)");
         // 
         // UploadTab
         // 
@@ -284,9 +344,11 @@ partial class UploadTab
         Controls.Add(_detailsBox);
         Controls.Add(_deviceBox);
         Controls.Add(_saveTypeBox);
+        Controls.Add(_upIconLabel);
+        Controls.Add(_upIconPreview);
         Controls.Add(_btnUpload);
         Name = "UploadTab";
-        Size = new Size(784, 714);
+        Size = new Size(1008, 660);
         _saveBox.ResumeLayout(false);
         _saveBox.PerformLayout();
         _detailsBox.ResumeLayout(false);

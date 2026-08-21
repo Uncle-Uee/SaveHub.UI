@@ -1,7 +1,9 @@
 using System.Collections.ObjectModel;
 using System.IO;
+using Avalonia.Media.Imaging;
 using CommunityToolkit.Mvvm.ComponentModel;
 using CommunityToolkit.Mvvm.Input;
+using SaveHub.Avalonia.Common;
 using SaveHub.Avalonia.Models;
 using SaveHub.Avalonia.Services;
 using SaveHub.Core;
@@ -11,18 +13,19 @@ using SaveHub.Core.Models;
 
 namespace SaveHub.Avalonia.ViewModels;
 
-/// <summary>Upload tab: pick save files/folder, detect metadata, and upload.</summary>
+/// <summary>Upload tab: stage up to ten memory cards (or one folder), each with its own metadata, and upload them.</summary>
 public sealed partial class UploadViewModel : ViewModelBase
 {
     private const int MaxDescription = 256;
+    private const int MaxCards = 10;
 
     private readonly AppController _controller;
     private readonly IShellContext _shell;
-    private readonly List<string> _upFilesList = [];
-
-    private string? _upRoot;
-    private string? _upIconPath;
-    private string? _upDevice;
+    private readonly List<PendingSave> _items = [];
+    private readonly PendingUploadStore _store;
+    private PendingSave? _current;
+    private bool _syncingFields;
+    private bool _suppressSelection;
 
     [ObservableProperty]
     private string _selectedDeviceDisplay = "Select a device";
@@ -37,7 +40,7 @@ public sealed partial class UploadViewModel : ViewModelBase
     private bool _isMemoryCard = true;
 
     [ObservableProperty]
-    private bool _isBulk;
+    private FileRow? _selectedFile;
 
     [ObservableProperty]
     private string _pathText = string.Empty;
@@ -52,33 +55,32 @@ public sealed partial class UploadViewModel : ViewModelBase
     [ObservableProperty]
     private string _gameName = string.Empty;
 
-    public ObservableCollection<FileRow> Files { get; } = [];
+    [ObservableProperty]
+    [NotifyPropertyChangedFor(nameof(HasIconPreview))]
+    private Bitmap? _iconPreview;
 
-    public ObservableCollection<BulkCardRow> BulkCards { get; } = [];
+    public ObservableCollection<FileRow> Files { get; } = [];
 
     public int MaxDescriptionLength => MaxDescription;
 
     public string DescriptionCount => $"{Description.Length}/{MaxDescription}";
 
+    /// <summary>True when a cover icon has been selected and can be previewed.</summary>
+    public bool HasIconPreview => IconPreview is not null;
+
     internal UploadViewModel(AppController controller, IShellContext shell)
     {
         _controller = controller;
         _shell = shell;
+        _store = new PendingUploadStore(PendingUploadStore.DefaultPath);
+        _store.Clear();
     }
+
+    // ---------------------------------------------------------------- Staging
 
     [RelayCommand]
     private async Task BrowseFolder()
     {
-        if (IsBulk)
-        {
-            string? bulkFolder = await _shell.PickFolderAsync("Select the folder of memory cards");
-            if (bulkFolder is null)
-            {
-                return;
-            }
-            PopulateBulkGrid(Directory.GetFiles(bulkFolder, "*", SearchOption.TopDirectoryOnly));
-            return;
-        }
         IsSaveFolder = true;
         await Browse();
     }
@@ -86,20 +88,7 @@ public sealed partial class UploadViewModel : ViewModelBase
     [RelayCommand]
     private async Task Browse()
     {
-        if (IsBulk)
-        {
-            IReadOnlyList<string> bulkFiles = await _shell.PickFilesAsync("Select memory-card files", true, null, null);
-            if (bulkFiles.Count > 0)
-            {
-                PopulateBulkGrid(bulkFiles);
-            }
-            return;
-        }
-
         SaveType type = SelectedSaveType();
-        _upFilesList.Clear();
-        _upRoot = null;
-
         if (type == SaveType.SaveFolder)
         {
             string? folder = await _shell.PickFolderAsync("Select the save folder");
@@ -107,69 +96,204 @@ public sealed partial class UploadViewModel : ViewModelBase
             {
                 return;
             }
-            _upRoot = folder;
-            _upFilesList.AddRange(Directory.GetFiles(folder, "*", SearchOption.AllDirectories));
-            PathText = folder;
+            _items.Clear();
+            PendingSave item = new PendingSave
+            {
+                Key = folder,
+                SaveType = SaveType.SaveFolder,
+                Files = Directory.GetFiles(folder, "*", SearchOption.AllDirectories).ToList(),
+                RootDirectory = folder,
+                DisplayName = Path.GetFileName(folder.TrimEnd(Path.DirectorySeparatorChar)),
+            };
+            if (_controller.DetectFolderPlatform(item.Files) is { } platform)
+            {
+                item.Device = platform;
+            }
+            DetectInto(item);
+            _items.Add(item);
         }
-        else
+        else if (type == SaveType.SaveState)
         {
-            IReadOnlyList<string> files = await _shell.PickFilesAsync("Select save file(s)", type != SaveType.MemoryCard, null, null);
+            IReadOnlyList<string> files = await _shell.PickFilesAsync("Select save-state file(s)", true, null, null);
             if (files.Count == 0)
             {
                 return;
             }
-            _upFilesList.AddRange(files);
-            PathText = files.Count == 1 ? files[0] : $"{files.Count} files selected";
+            _items.Clear();
+            PendingSave item = new PendingSave
+            {
+                Key = files[0],
+                SaveType = SaveType.SaveState,
+                Files = files.ToList(),
+                DisplayName = Path.GetFileName(files[0]),
+            };
+            DetectInto(item);
+            _items.Add(item);
         }
-
-        PopulateFileList();
-
-        TitleId = string.Empty;
-        GameName = string.Empty;
-
-        if (type == SaveType.MemoryCard && _upFilesList.Count > 0 &&
-            _controller.DetectMemoryCardPlatform(_upFilesList[0]) is { } detected)
+        else
         {
-            SetDeviceByCode(detected);
-            _shell.SetStatus($"Detected {detected} memory card.");
-        }
-        else if (type == SaveType.SaveFolder &&
-                 _controller.DetectFolderPlatform(_upFilesList) is { } folderPlatform)
-        {
-            SetDeviceByCode(folderPlatform);
-            _shell.SetStatus($"Detected {folderPlatform} save folder.");
+            IReadOnlyList<string> files = await _shell.PickFilesAsync("Select memory card(s)", true, null, null);
+            if (files.Count == 0)
+            {
+                return;
+            }
+            AddCardFiles(files);
         }
 
-        DetectTitleIdCore();
+        PopulateList();
+        SelectItem(_items.Count > 0 ? _items[0] : null);
+        Persist();
+    }
+
+    [RelayCommand]
+    private async Task AddFiles()
+    {
+        IReadOnlyList<string> files = await _shell.PickFilesAsync("Add save file(s)", true, null, null);
+        if (files.Count == 0)
+        {
+            return;
+        }
+        if (SelectedSaveType() == SaveType.MemoryCard)
+        {
+            AddCardFiles(files);
+            PopulateList();
+            SelectItem(_items.Count > 0 ? _items[^1] : null);
+        }
+        else if (_current is not null)
+        {
+            _current.Files.AddRange(files);
+            RefreshRow(_current);
+            PathText = ItemDetails(_current);
+        }
+        Persist();
+    }
+
+    [RelayCommand]
+    private void RemoveFile()
+    {
+        if (_current is null)
+        {
+            _shell.SetStatus("Select a save to remove.");
+            return;
+        }
+        _items.Remove(_current);
+        _current = null;
+        PopulateList();
+        SelectItem(_items.Count > 0 ? _items[0] : null);
+        Persist();
     }
 
     [RelayCommand]
     private async Task SelectIcon()
     {
+        if (_current is null)
+        {
+            _shell.SetStatus("Select a save in the list first.");
+            return;
+        }
         IReadOnlyList<string> files = await _shell.PickFilesAsync(
             "Select icon", false, "Images", ["*.png", "*.jpg", "*.jpeg", "*.webp", "*.gif", "*.bmp"]);
         if (files.Count > 0)
         {
-            _upIconPath = files[0];
-            _shell.SetStatus($"Icon selected: {Path.GetFileName(_upIconPath)}");
+            _current.IconPath = files[0];
+            UpdateCoverPreview();
+            _shell.SetStatus($"Icon selected: {Path.GetFileName(_current.IconPath)}");
+            Persist();
+        }
+    }
+
+    private void AddCardFiles(IReadOnlyList<string> paths)
+    {
+        _items.RemoveAll(i => i.SaveType != SaveType.MemoryCard);
+        foreach (string path in paths)
+        {
+            if (_items.Count >= MaxCards)
+            {
+                _shell.SetStatus($"Up to {MaxCards} memory cards per upload. Extra files were skipped.");
+                break;
+            }
+            if (_items.Any(i => string.Equals(i.Key, path, StringComparison.OrdinalIgnoreCase)))
+            {
+                continue;
+            }
+            PendingSave item = new PendingSave
+            {
+                Key = path,
+                SaveType = SaveType.MemoryCard,
+                Files = [path],
+                DisplayName = Path.GetFileName(path),
+            };
+            if (_controller.DetectMemoryCardPlatform(path) is { } detected)
+            {
+                item.Device = detected;
+            }
+            DetectInto(item);
+            _items.Add(item);
+        }
+    }
+
+    // ---------------------------------------------------------------- Device / detection
+
+    [RelayCommand]
+    private void SelectDevice(string? code)
+    {
+        if (string.IsNullOrEmpty(code) || _current is null)
+        {
+            return;
+        }
+        _current.Device = code;
+        SelectedDeviceDisplay = DeviceDisplay(code);
+        if (code == "PC")
+        {
+            IsSaveFolder = true;
+        }
+        _current.TitleId = string.Empty;
+        _current.GameName = string.Empty;
+        DetectInto(_current);
+        _syncingFields = true;
+        TitleId = _current.TitleId;
+        GameName = _current.GameName;
+        _syncingFields = false;
+        RefreshRow(_current);
+        UpdateCoverPreview();
+        Persist();
+    }
+
+    private void DetectInto(PendingSave item)
+    {
+        if (string.IsNullOrEmpty(item.Device) || item.Files.Count == 0)
+        {
+            return;
+        }
+        if (item.TitleId.Trim().Length == 0)
+        {
+            string? id = _controller.DetectTitleId(item.Device, item.SaveType, item.Files);
+            if (!string.IsNullOrWhiteSpace(id))
+            {
+                item.TitleId = id;
+            }
+        }
+        if (item.GameName.Trim().Length == 0 && _controller.DetectSaveName(item.Device, item.Files) is { } name)
+        {
+            item.GameName = name;
         }
     }
 
     [RelayCommand]
     private async Task DetectTitleId()
     {
-        if (string.IsNullOrEmpty(_upDevice))
+        if (_current is null)
+        {
+            await _shell.WarnAsync("Select a save in the list first.");
+            return;
+        }
+        if (string.IsNullOrEmpty(_current.Device))
         {
             await _shell.WarnAsync("Select a device type first.");
             return;
         }
-        if (_upFilesList.Count == 0)
-        {
-            await _shell.WarnAsync("Browse and select the save file(s) first.");
-            return;
-        }
 
-        string? id = _controller.DetectTitleId(_upDevice, SelectedSaveType(), _upFilesList);
+        string? id = _controller.DetectTitleId(_current.Device, _current.SaveType, _current.Files);
         if (!string.IsNullOrWhiteSpace(id))
         {
             TitleId = id;
@@ -180,7 +304,7 @@ public sealed partial class UploadViewModel : ViewModelBase
             _shell.SetStatus("No Title ID found on this save. Enter a Game Name instead (used as the folder).");
         }
 
-        if (GameName.Trim().Length == 0 && _controller.DetectSaveName(_upDevice, _upFilesList) is { } name)
+        if (GameName.Trim().Length == 0 && _controller.DetectSaveName(_current.Device, _current.Files) is { } name)
         {
             GameName = name;
         }
@@ -188,50 +312,47 @@ public sealed partial class UploadViewModel : ViewModelBase
         string lookupId = TitleId.Trim();
         if (GameName.Trim().Length == 0 && lookupId.Length > 0 &&
             _shell.TryCreateClient() is { } client &&
-            await _controller.LookupExistingGameNameAsync(client, _upDevice, lookupId) is { } existingName)
+            await _controller.LookupExistingGameNameAsync(client, _current.Device, lookupId) is { } existingName)
         {
             GameName = existingName;
         }
     }
 
+    // ---------------------------------------------------------------- Upload
+
     [RelayCommand]
     private async Task Submit()
     {
-        if (string.IsNullOrEmpty(_upDevice))
+        if (_items.Count == 0)
         {
-            await _shell.WarnAsync("Select a device type.");
+            await _shell.WarnAsync("Add at least one save to upload.");
             return;
         }
-        if (IsBulk)
+        foreach (PendingSave item in _items)
         {
-            await SubmitBulkAsync();
-            return;
+            if (string.IsNullOrEmpty(item.Device))
+            {
+                await _shell.WarnAsync($"Select a device type for '{ItemLabel(item)}'.");
+                return;
+            }
+            if (item.Files.Count == 0)
+            {
+                await _shell.WarnAsync($"'{ItemLabel(item)}' has no files.");
+                return;
+            }
+            if (item.Description.Trim().Length == 0)
+            {
+                await _shell.WarnAsync($"Enter a description for '{ItemLabel(item)}'.");
+                return;
+            }
+            if (item.SaveType == SaveType.SaveFolder &&
+                string.Equals(item.Device, "PC", StringComparison.OrdinalIgnoreCase) &&
+                item.GameName.Trim().Length == 0)
+            {
+                await _shell.WarnAsync($"Enter the game name for the desktop save folder '{ItemLabel(item)}'.");
+                return;
+            }
         }
-        if (_upFilesList.Count == 0)
-        {
-            await _shell.WarnAsync("Browse and select the save file(s).");
-            return;
-        }
-        string description = Description.Trim();
-        if (description.Length == 0)
-        {
-            await _shell.WarnAsync("Enter a description.");
-            return;
-        }
-
-        string titleId = TitleId.Trim();
-        string gameName = GameName.Trim();
-        if (SelectedSaveType() == SaveType.SaveFolder &&
-            string.Equals(_upDevice, "PC", StringComparison.OrdinalIgnoreCase) && gameName.Length == 0)
-        {
-            await _shell.WarnAsync("Enter the game name for this desktop save folder.");
-            return;
-        }
-        GameIdResolution resolution = _controller.Resolve(
-            _upDevice, SelectedSaveType(), _upFilesList,
-            titleId.Length == 0 ? null : titleId,
-            gameName.Length == 0 ? null : gameName);
-        string gameId = resolution.GameId;
 
         SaveHubClient? client = await _shell.RequireClientAsync();
         if (client is null)
@@ -239,77 +360,237 @@ public sealed partial class UploadViewModel : ViewModelBase
             return;
         }
 
-        SaveUploadRequest request = new SaveUploadRequest
-        {
-            Platform = _upDevice,
-            GameId = gameId,
-            SaveType = SelectedSaveType(),
-            Files = _upFilesList.ToList(),
-            RootDirectory = SelectedSaveType() == SaveType.SaveFolder ? _upRoot : null,
-            Description = description,
-            GameTitle = gameName.Length == 0 ? null : gameName,
-            IconPath = _upIconPath,
-            AutoFetchCoverArt = _upIconPath is null,
-        };
-
+        int uploaded = 0;
         await _shell.RunBusy("Uploading...", async () =>
         {
-            SaveUploadResult result = await _controller.UploadAsync(client, request, new UploadOptions());
-            await _shell.ShowResultAsync(result);
-
-            if (result.Merged)
+            foreach (PendingSave item in _items)
             {
-                _controller.CacheGameName(_upDevice, gameId, gameName.Length == 0 ? null : gameName);
-            }
+                string titleId = item.TitleId.Trim();
+                string gameName = item.GameName.Trim();
+                GameIdResolution resolution = _controller.Resolve(
+                    item.Device!, item.SaveType, item.Files,
+                    titleId.Length == 0 ? null : titleId,
+                    gameName.Length == 0 ? null : gameName);
 
-            if (_controller.IsNintendo(_upDevice) && _upIconPath is null)
-            {
-                _shell.SetStatus($"Uploaded. No cover art for {gameId} — add one later via Select Icon or the Edit tab.");
+                SaveUploadRequest request = new SaveUploadRequest
+                {
+                    Platform = item.Device!,
+                    GameId = resolution.GameId,
+                    SaveType = item.SaveType,
+                    Files = item.Files.ToList(),
+                    RootDirectory = item.SaveType == SaveType.SaveFolder ? item.RootDirectory : null,
+                    Description = item.Description.Trim(),
+                    GameTitle = gameName.Length == 0 ? null : gameName,
+                    IconPath = item.IconPath,
+                    AutoFetchCoverArt = item.IconPath is null,
+                };
+
+                SaveUploadResult result = await _controller.UploadAsync(client, request, new UploadOptions());
+                if (result.Merged)
+                {
+                    _controller.CacheGameName(item.Device!, resolution.GameId, gameName.Length == 0 ? null : gameName);
+                }
+                if (!string.IsNullOrEmpty(item.IconPath))
+                {
+                    _controller.CacheUserCover(item.Device!, resolution.GameId, item.IconPath);
+                }
+                uploaded++;
             }
         });
+
+        _items.Clear();
+        _current = null;
+        _store.Clear();
+        PopulateList();
+        ClearFields();
+        _shell.SetStatus($"Upload complete: {uploaded} save(s) uploaded.");
     }
 
-    [RelayCommand]
-    private void SelectDevice(string? code)
+    // ---------------------------------------------------------------- Selection / field sync
+
+    partial void OnSelectedFileChanged(FileRow? value)
     {
-        if (string.IsNullOrEmpty(code))
+        if (_suppressSelection)
         {
             return;
         }
-        ApplyDevice(code);
-        TitleId = string.Empty;
-        GameName = string.Empty;
-        DetectTitleIdCore();
-    }
-
-    private void SetDeviceByCode(string code)
-    {
-        ApplyDevice(code);
-    }
-
-    private void ApplyDevice(string code)
-    {
-        _upDevice = code;
-        SelectedDeviceDisplay = DeviceDisplay(code);
-        if (code == "PC")
+        int index = value is null ? -1 : Files.IndexOf(value);
+        _current = index >= 0 && index < _items.Count ? _items[index] : null;
+        if (_current is not null)
         {
-            IsSaveFolder = true;
+            LoadCurrentIntoFields(_current);
         }
     }
 
-    private static string DeviceDisplay(string code)
+    partial void OnTitleIdChanged(string value)
     {
-        foreach (DeviceGroup group in Devices.Groups)
+        if (_syncingFields || _current is null)
         {
-            foreach (DeviceOption option in group.Consoles)
+            return;
+        }
+        _current.TitleId = value;
+        UpdateCoverPreview();
+        Persist();
+    }
+
+    partial void OnGameNameChanged(string value)
+    {
+        if (_syncingFields || _current is null)
+        {
+            return;
+        }
+        _current.GameName = value;
+        RefreshRow(_current);
+        Persist();
+    }
+
+    partial void OnDescriptionChanged(string value)
+    {
+        if (_syncingFields || _current is null)
+        {
+            return;
+        }
+        _current.Description = value;
+        Persist();
+    }
+
+    partial void OnIsMemoryCardChanged(bool value)
+    {
+        ApplySaveTypeChange();
+    }
+
+    partial void OnIsSaveStateChanged(bool value)
+    {
+        ApplySaveTypeChange();
+    }
+
+    partial void OnIsSaveFolderChanged(bool value)
+    {
+        ApplySaveTypeChange();
+    }
+
+    private void ApplySaveTypeChange()
+    {
+        if (_syncingFields || _current is null)
+        {
+            return;
+        }
+        _current.SaveType = SelectedSaveType();
+        RefreshRow(_current);
+        Persist();
+    }
+
+    private void SelectItem(PendingSave? item)
+    {
+        _current = item;
+        if (item is null)
+        {
+            _suppressSelection = true;
+            SelectedFile = null;
+            _suppressSelection = false;
+            ClearFields();
+            return;
+        }
+        int index = _items.IndexOf(item);
+        _suppressSelection = true;
+        SelectedFile = index >= 0 && index < Files.Count ? Files[index] : null;
+        _suppressSelection = false;
+        LoadCurrentIntoFields(item);
+    }
+
+    private void LoadCurrentIntoFields(PendingSave item)
+    {
+        _syncingFields = true;
+        IsMemoryCard = item.SaveType == SaveType.MemoryCard;
+        IsSaveState = item.SaveType == SaveType.SaveState;
+        IsSaveFolder = item.SaveType == SaveType.SaveFolder;
+        SelectedDeviceDisplay = string.IsNullOrEmpty(item.Device) ? "Select a device" : DeviceDisplay(item.Device);
+        TitleId = item.TitleId;
+        GameName = item.GameName;
+        Description = item.Description;
+        PathText = ItemDetails(item);
+        UpdateCoverPreview();
+        _syncingFields = false;
+    }
+
+    private void ClearFields()
+    {
+        _syncingFields = true;
+        IsMemoryCard = true;
+        IsSaveState = false;
+        IsSaveFolder = false;
+        SelectedDeviceDisplay = "Select a device";
+        TitleId = string.Empty;
+        GameName = string.Empty;
+        Description = string.Empty;
+        PathText = string.Empty;
+        UpdateCoverPreview();
+        _syncingFields = false;
+    }
+
+    // ---------------------------------------------------------------- List rendering
+
+    private void PopulateList()
+    {
+        _suppressSelection = true;
+        Files.Clear();
+        foreach (PendingSave item in _items)
+        {
+            Files.Add(new FileRow(ItemLabel(item), TypeLabel(item.SaveType), ItemDetails(item)));
+        }
+        _suppressSelection = false;
+    }
+
+    private void RefreshRow(PendingSave item)
+    {
+        int index = _items.IndexOf(item);
+        if (index < 0 || index >= Files.Count)
+        {
+            return;
+        }
+        _suppressSelection = true;
+        FileRow row = new FileRow(ItemLabel(item), TypeLabel(item.SaveType), ItemDetails(item));
+        Files[index] = row;
+        if (ReferenceEquals(_current, item))
+        {
+            SelectedFile = row;
+        }
+        _suppressSelection = false;
+    }
+
+    private void UpdateCoverPreview()
+    {
+        IconPreview = ResolveCoverImage(_current);
+    }
+
+    private Bitmap ResolveCoverImage(PendingSave? item)
+    {
+        if (item is not null && !string.IsNullOrEmpty(item.IconPath) && File.Exists(item.IconPath))
+        {
+            Bitmap? user = CoverImages.TryLoad(item.IconPath);
+            if (user is not null)
             {
-                if (option.Code == code)
+                return user;
+            }
+        }
+        if (item is not null && !string.IsNullOrEmpty(item.Device) && item.TitleId.Trim().Length > 0)
+        {
+            byte[]? cached = _controller.TryGetCachedCover(item.Device, item.TitleId.Trim());
+            if (cached is not null)
+            {
+                Bitmap? cover = CoverImages.TryLoad(cached);
+                if (cover is not null)
                 {
-                    return $"{group.Manufacturer} \u2014 {option.Display}";
+                    return cover;
                 }
             }
         }
-        return code;
+        return CoverImages.Placeholder();
+    }
+
+    private void Persist()
+    {
+        _store.Save(_items);
     }
 
     private SaveType SelectedSaveType()
@@ -325,116 +606,47 @@ public sealed partial class UploadViewModel : ViewModelBase
         return SaveType.SaveState;
     }
 
-    private void DetectTitleIdCore()
+    private static string ItemLabel(PendingSave item)
     {
-        if (string.IsNullOrEmpty(_upDevice) || _upFilesList.Count == 0)
+        string name = item.GameName.Trim();
+        return name.Length > 0 ? name : item.DisplayName;
+    }
+
+    private static string TypeLabel(SaveType type)
+    {
+        return type switch
         {
-            return;
+            SaveType.SaveState => "Save State",
+            SaveType.SaveFolder => "Folder",
+            _ => "Memory Card",
+        };
+    }
+
+    private static string ItemDetails(PendingSave item)
+    {
+        if (item.SaveType == SaveType.SaveFolder)
+        {
+            return item.RootDirectory ?? string.Empty;
         }
-        if (TitleId.Trim().Length == 0)
+        if (item.SaveType == SaveType.SaveState)
         {
-            string? id = _controller.DetectTitleId(_upDevice, SelectedSaveType(), _upFilesList);
-            if (!string.IsNullOrWhiteSpace(id))
+            return item.Files.Count == 1 ? item.Files[0] : $"{item.Files.Count} files";
+        }
+        return item.Files.Count > 0 ? item.Files[0] : string.Empty;
+    }
+
+    private static string DeviceDisplay(string code)
+    {
+        foreach (DeviceGroup group in Devices.Groups)
+        {
+            foreach (DeviceOption option in group.Consoles)
             {
-                TitleId = id;
-                _shell.SetStatus($"Detected Title ID: {id}");
-            }
-        }
-        if (GameName.Trim().Length == 0 && _controller.DetectSaveName(_upDevice, _upFilesList) is { } name)
-        {
-            GameName = name;
-        }
-    }
-
-    private void PopulateFileList()
-    {
-        Files.Clear();
-        foreach (string path in _upFilesList)
-        {
-            long size = new FileInfo(path).Length;
-            Files.Add(new FileRow(Path.GetFileName(path), AppController.FormatSize(size), path));
-        }
-    }
-
-    partial void OnIsBulkChanged(bool value)
-    {
-        if (value)
-        {
-            IsMemoryCard = true;
-        }
-    }
-
-    private void PopulateBulkGrid(IReadOnlyList<string> files)
-    {
-        if (string.IsNullOrEmpty(_upDevice) && files.Count > 0 &&
-            _controller.DetectMemoryCardPlatform(files[0]) is { } detectedPlatform)
-        {
-            SetDeviceByCode(detectedPlatform);
-        }
-
-        BulkCards.Clear();
-        string platform = _upDevice ?? string.Empty;
-        foreach (string file in files)
-        {
-            string id = platform.Length > 0
-                ? _controller.DetectTitleId(platform, SaveType.MemoryCard, [file]) ?? string.Empty
-                : string.Empty;
-            string name = platform.Length > 0
-                ? _controller.DetectSaveName(platform, [file]) ?? string.Empty
-                : string.Empty;
-            BulkCards.Add(new BulkCardRow(file, Path.GetFileName(file), name, id, BulkCardRow.ModeUploadIndex));
-        }
-        PathText = $"{files.Count} memory card(s) loaded";
-        _shell.SetStatus($"Loaded {files.Count} memory card(s). Choose an action per card, then Upload.");
-    }
-
-    private async Task SubmitBulkAsync()
-    {
-        if (BulkCards.Count == 0)
-        {
-            await _shell.WarnAsync("Browse a folder (or files) of memory cards first.");
-            return;
-        }
-        SaveHubClient? client = await _shell.RequireClientAsync();
-        if (client is null)
-        {
-            return;
-        }
-
-        string platform = _upDevice!;
-        List<MemoryCardIndexEntry> entries = new List<MemoryCardIndexEntry>();
-        int uploaded = 0;
-        await _shell.RunBusy("Uploading memory cards...", async () =>
-        {
-            foreach (BulkCardRow card in BulkCards)
-            {
-                string game = card.Game.Trim();
-                string id = card.TitleId.Trim();
-                GameIdResolution resolution = _controller.Resolve(
-                    platform, SaveType.MemoryCard, [card.Path],
-                    id.Length == 0 ? null : id,
-                    game.Length == 0 ? null : game);
-                string gameId = resolution.GameId;
-                string displayName = game.Length > 0 ? game : gameId;
-                if (card.Mode == BulkCardRow.ModeUploadIndex)
+                if (option.Code == code)
                 {
-                    SaveUploadRequest request = new SaveUploadRequest
-                    {
-                        Platform = platform,
-                        GameId = gameId,
-                        SaveType = SaveType.MemoryCard,
-                        Files = [card.Path],
-                        Description = displayName,
-                        GameTitle = game.Length > 0 ? game : null,
-                        AutoFetchCoverArt = true,
-                    };
-                    await _controller.UploadAsync(client, request, new UploadOptions());
-                    uploaded++;
+                    return $"{group.Manufacturer} \u2014 {option.Display}";
                 }
-                entries.Add(new MemoryCardIndexEntry(gameId, displayName));
             }
-            await _controller.UpdateMemoryCardIndexAsync(client, platform, entries);
-        });
-        _shell.SetStatus($"Bulk complete: {uploaded} uploaded, {entries.Count} indexed in {platform}/{SaveNaming.MemoryCardIndexFolderName}.");
+        }
+        return code;
     }
 }

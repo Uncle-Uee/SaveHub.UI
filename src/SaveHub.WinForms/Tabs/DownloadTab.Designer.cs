@@ -57,6 +57,7 @@ partial class DownloadTab
         //
         _dlList.Location = new Point(12, 48);
         _dlList.Size = new Size(600, 612);
+        _dlList.Anchor = AnchorStyles.Top | AnchorStyles.Bottom | AnchorStyles.Left | AnchorStyles.Right;
         _dlList.SelectedIndexChanged += Download_SelectionChanged;
         //
         // _dlIcon
@@ -65,18 +66,21 @@ partial class DownloadTab
         _dlIcon.Size = new Size(150, 150);
         _dlIcon.SizeMode = PictureBoxSizeMode.Zoom;
         _dlIcon.BorderStyle = BorderStyle.FixedSingle;
+        _dlIcon.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         //
         // _dlName
         //
         _dlName.Location = new Point(620, 202);
         _dlName.Size = new Size(150, 60);
         _dlName.AutoSize = false;
+        _dlName.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         //
         // _btnDownload
         //
         _btnDownload.Text = "Download Selected";
         _btnDownload.Location = new Point(620, 270);
         _btnDownload.Size = new Size(150, 28);
+        _btnDownload.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _btnDownload.Click += Download_Selected;
         //
         // DownloadTab
