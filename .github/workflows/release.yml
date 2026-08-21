@@ -1,9 +1,11 @@
 name: release-ui
 
-# Builds the Windows desktop apps (WinForms + Avalonia) and attaches them to the
-# GitHub Release. It restores the SaveHub.* API packages from NuGet.org, so the
-# matching API packages (see Directory.Packages.props) MUST already be published
-# there — publish the SaveHub API release first, then publish this UI release.
+# Builds the desktop apps and attaches them to the GitHub Release:
+#   - WinForms (win-x64) — Windows only.
+#   - Avalonia (win-x64, linux-x64) — cross-platform.
+# It restores the SaveHub.* API packages from NuGet.org, so the matching API
+# packages (see Directory.Packages.props) MUST already be published there —
+# publish the SaveHub API release first, then publish this UI release.
 
 on:
   release:
@@ -63,3 +65,40 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: gh release upload "${{ github.event.release.tag_name }}" SaveHub-WinForms-*.zip SaveHub-Avalonia-*.zip --clobber
+
+  linux:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '10.0.x'
+
+      - name: Publish Avalonia (linux-x64, self-contained single file)
+        run: >
+          dotnet publish src/SaveHub.Avalonia/SaveHub.Avalonia.csproj
+          -c Release -r linux-x64 --self-contained true
+          -p:PublishSingleFile=true -p:IncludeNativeLibrariesForSelfExtract=true
+          -p:EnableCompressionInSingleFile=true -p:DebugType=none
+          -o publish/avalonia-linux-x64
+
+      - name: Package
+        run: |
+          ver="${{ github.event.release.tag_name }}"
+          if [ -z "$ver" ]; then ver="dev"; fi
+          cp LICENSE THIRD-PARTY-NOTICES.txt CREDITS.md publish/avalonia-linux-x64/
+          tar -czf "SaveHub-Avalonia-$ver-linux-x64.tar.gz" -C publish/avalonia-linux-x64 .
+
+      - name: Upload build artifacts (workflow_dispatch)
+        if: github.event_name == 'workflow_dispatch'
+        uses: actions/upload-artifact@v4
+        with:
+          name: savehub-linux
+          path: SaveHub-Avalonia-*-linux-x64.tar.gz
+
+      - name: Attach to the GitHub Release
+        if: github.event_name == 'release'
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release upload "${{ github.event.release.tag_name }}" SaveHub-Avalonia-*-linux-x64.tar.gz --clobber
