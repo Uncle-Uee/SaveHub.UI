@@ -48,7 +48,18 @@ public sealed partial class BulkUploadViewModel : ViewModelBase
     [RelayCommand]
     private async Task AddFolder()
     {
-        string? root = await _shell.PickFolderAsync("Select a game save folder (or a folder containing several)");
+        string? folder = await _shell.PickFolderAsync("Select a game save folder");
+        if (folder is null)
+        {
+            return;
+        }
+        AddGameFolderNode(folder);
+    }
+
+    [RelayCommand]
+    private async Task AddCollection()
+    {
+        string? root = await _shell.PickFolderAsync("Select a folder whose sub-folders are each a game");
         if (root is null)
         {
             return;

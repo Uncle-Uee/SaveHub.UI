@@ -44,7 +44,17 @@ internal sealed partial class BulkUploadTab : UserControl, ITabView
 
     private void Add_Folder(object? sender, EventArgs e)
     {
-        using FolderBrowserDialog dialog = new FolderBrowserDialog { Description = "Select a game save folder (or a folder containing several)" };
+        using FolderBrowserDialog dialog = new FolderBrowserDialog { Description = "Select a game save folder" };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+        AddGameFolderNode(dialog.SelectedPath);
+    }
+
+    private void Add_Collection(object? sender, EventArgs e)
+    {
+        using FolderBrowserDialog dialog = new FolderBrowserDialog { Description = "Select a folder whose sub-folders are each a game" };
         if (dialog.ShowDialog(this) != DialogResult.OK)
         {
             return;

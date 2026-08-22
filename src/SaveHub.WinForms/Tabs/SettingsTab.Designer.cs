@@ -154,9 +154,11 @@ partial class SettingsTab
                  + "Every upload is sent as a pull request (owners can auto-merge), so changes are "
                  + "tracked and easy to undo. It needs a personal access token with Contents and "
                  + "Pull requests (read & write) on that one repo \u2014 paste it above or set the "
-                 + "SAVEHUB_GITHUB_TOKEN environment variable. SaveHub only touches this repository.",
-            Location = new Point(4, 172),
-            Size = new Size(738, 74),
+                 + "SAVEHUB_GITHUB_TOKEN environment variable. For a private repo, use a classic token "
+                 + "with the 'repo' scope (or a fine-grained token with the same permissions). "
+                 + "SaveHub only touches this repository.",
+            Location = new Point(4, 164),
+            Size = new Size(738, 86),
             AutoSize = false,
             ForeColor = SystemColors.GrayText,
         });
@@ -266,10 +268,11 @@ partial class SettingsTab
         {
             Text = "What this is: SaveHub keeps your saves as files in a GitLab project you own. Every "
                  + "upload is sent as a merge request (Maintainers can auto-merge). It needs a personal "
-                 + "access token with the 'api' scope \u2014 paste it above or set the SAVEHUB_GITLAB_TOKEN "
-                 + "environment variable. Set the instance URL only for a self-hosted GitLab.",
+                 + "access token with the 'api' scope (which also grants access to private projects) \u2014 "
+                 + "paste it above or set the SAVEHUB_GITLAB_TOKEN environment variable. Set the instance "
+                 + "URL only for a self-hosted GitLab.",
             Location = new Point(4, 196),
-            Size = new Size(738, 50),
+            Size = new Size(738, 54),
             AutoSize = false,
             ForeColor = SystemColors.GrayText,
         });
@@ -303,9 +306,10 @@ partial class SettingsTab
             Text = "What this is: SaveHub keeps your saves as files in a Bitbucket repository you own. "
                  + "Every upload is sent as a pull request (owners can auto-merge). It needs your "
                  + "Bitbucket username and an app password with Repositories (read/write) and Pull "
-                 + "requests (write) \u2014 paste it above or set the SAVEHUB_BITBUCKET_APP_PASSWORD env var.",
+                 + "requests (write); the same permissions cover private repos \u2014 paste it above or set "
+                 + "the SAVEHUB_BITBUCKET_APP_PASSWORD env var.",
             Location = new Point(4, 196),
-            Size = new Size(738, 50),
+            Size = new Size(738, 54),
             AutoSize = false,
             ForeColor = SystemColors.GrayText,
         });

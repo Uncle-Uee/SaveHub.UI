@@ -9,6 +9,7 @@ partial class BulkUploadTab
     private ToolStrip _toolbar;
     private ToolStripDropDownButton _add;
     private ToolStripMenuItem _addFolder;
+    private ToolStripMenuItem _addCollection;
     private ToolStripMenuItem _addFiles;
     private ToolStripButton _edit;
     private ToolStripButton _remove;
@@ -41,6 +42,7 @@ partial class BulkUploadTab
         _toolbar = new ToolStrip();
         _add = new ToolStripDropDownButton();
         _addFolder = new ToolStripMenuItem();
+        _addCollection = new ToolStripMenuItem();
         _addFiles = new ToolStripMenuItem();
         _edit = new ToolStripButton();
         _remove = new ToolStripButton();
@@ -66,7 +68,7 @@ partial class BulkUploadTab
         _info.Location = new Point(12, 10);
         _info.Name = "_info";
         _info.Size = new Size(980, 34);
-        _info.Text = "Add a parent folder (e.g. My Games) to list each game, or add memory-card files. Each folder uploads as a save folder; each file as a memory card. Untick to exclude items; set a per-item platform and icon.";
+        _info.Text = "Add folder = one game (shown as a parent with its files/sub-folders nested). Add collection = a folder whose sub-folders are each a game. Or add memory-card files. Each folder uploads as a save folder; each file as a memory card. Untick to exclude items; set a per-item platform and icon.";
         // 
         // _tree
         // 
@@ -103,13 +105,20 @@ partial class BulkUploadTab
         _add.DisplayStyle = ToolStripItemDisplayStyle.Text;
         _add.Size = new Size(132, 26);
         _add.Text = "Add";
-        _add.DropDownItems.AddRange(new ToolStripItem[] { _addFolder, _addFiles });
+        _add.ToolTipText = "Add game folders, collections, or memory-card files";
+        _add.DropDownItems.AddRange(new ToolStripItem[] { _addFolder, _addCollection, _addFiles });
+        _add.DropDown.ShowItemToolTips = true;
         // 
         // _addFolder / _addFiles
         // 
         _addFolder.Text = "Add folder\u2026";
+        _addFolder.ToolTipText = "Add a single game save folder (shown as a parent with its files/sub-folders nested)";
         _addFolder.Click += Add_Folder;
+        _addCollection.Text = "Add collection\u2026";
+        _addCollection.ToolTipText = "Add a parent folder whose sub-folders are each a game";
+        _addCollection.Click += Add_Collection;
         _addFiles.Text = "Add file(s)\u2026";
+        _addFiles.ToolTipText = "Add memory-card file(s)";
         _addFiles.Click += Add_Files;
         // 
         // _edit
@@ -118,6 +127,7 @@ partial class BulkUploadTab
         _edit.DisplayStyle = ToolStripItemDisplayStyle.Text;
         _edit.Size = new Size(132, 26);
         _edit.Text = "Edit name";
+        _edit.ToolTipText = "Rename the selected item (the repo game folder)";
         _edit.Click += Edit_Name;
         // 
         // _remove
@@ -126,6 +136,7 @@ partial class BulkUploadTab
         _remove.DisplayStyle = ToolStripItemDisplayStyle.Text;
         _remove.Size = new Size(132, 26);
         _remove.Text = "Remove";
+        _remove.ToolTipText = "Remove the selected item from the list (not from disk)";
         _remove.Click += Remove_Node;
         // 
         // _setIcon
@@ -134,6 +145,7 @@ partial class BulkUploadTab
         _setIcon.DisplayStyle = ToolStripItemDisplayStyle.Text;
         _setIcon.Size = new Size(132, 26);
         _setIcon.Text = "Set icon\u2026";
+        _setIcon.ToolTipText = "Pick a cover icon for the selected folder/file";
         _setIcon.Click += Set_Icon;
         // 
         // _expand
@@ -143,6 +155,7 @@ partial class BulkUploadTab
         _expand.DisplayStyle = ToolStripItemDisplayStyle.Text;
         _expand.Size = new Size(132, 26);
         _expand.Text = "Expand all";
+        _expand.ToolTipText = "Expand or collapse the whole tree";
         _expand.Click += Toggle_Expand;
         // 
         // _platformLabel
@@ -154,6 +167,7 @@ partial class BulkUploadTab
         _platform.AutoSize = false;
         _platform.DropDownStyle = ComboBoxStyle.DropDownList;
         _platform.Size = new Size(132, 23);
+        _platform.ToolTipText = "Set the platform for the selected item";
         _platform.SelectedIndexChanged += Platform_Changed;
         // 
         // _details
@@ -228,6 +242,7 @@ partial class BulkUploadTab
         // tooltips
         // 
         _tips.SetToolTip(_btnUpload, "Upload every ticked item");
+        _tips.SetToolTip(_bulkDetect, "Detect the Title ID from the selected item");
         // 
         // BulkUploadTab
         // 

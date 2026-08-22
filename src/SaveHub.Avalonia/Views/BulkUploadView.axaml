@@ -65,7 +65,8 @@
             </TreeView>
 
             <StackPanel Grid.Column="1" Width="150" Margin="10,0,0,0" Spacing="6">
-                <Button Content="Add folder&#x2026;" Command="{Binding AddFolderCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Add a parent folder (each sub-folder = a game) or a single game folder"/>
+                <Button Content="Add folder&#x2026;" Command="{Binding AddFolderCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Add a single game save folder (shown as a parent with its files/sub-folders nested)"/>
+                <Button Content="Add collection&#x2026;" Command="{Binding AddCollectionCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Add a parent folder whose sub-folders are each a game"/>
                 <Button Content="Add file(s)&#x2026;" Command="{Binding AddFilesCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Add memory-card file(s)"/>
                 <Button Content="Edit name" Command="{Binding EditNameCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Rename the selected item (the repo game folder)"/>
                 <Button Content="Remove" Command="{Binding RemoveCommand}" HorizontalAlignment="Stretch" ToolTip.Tip="Remove the selected item from the list (not from disk)"/>

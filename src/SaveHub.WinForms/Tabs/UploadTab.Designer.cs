@@ -13,6 +13,10 @@ partial class UploadTab
     private Button _upAdd;
     private Button _upEdit;
     private Button _upRemove;
+    private ContextMenuStrip _addMenu;
+    private ToolStripMenuItem _addSingleFile;
+    private ToolStripMenuItem _addMultipleFiles;
+    private ToolStripMenuItem _addFolderItem;
 
     private GroupBox _detailsBox;
     private TextBox _upGameName;
@@ -54,6 +58,10 @@ partial class UploadTab
         _upAdd = new Button();
         _upEdit = new Button();
         _upRemove = new Button();
+        _addMenu = new ContextMenuStrip();
+        _addSingleFile = new ToolStripMenuItem();
+        _addMultipleFiles = new ToolStripMenuItem();
+        _addFolderItem = new ToolStripMenuItem();
         _detailsBox = new GroupBox();
         _btnDetect = new Button();
         _upGameName = new TextBox();
@@ -100,7 +108,7 @@ partial class UploadTab
         _btnBrowse.Name = "_btnBrowse";
         _btnBrowse.Size = new Size(100, 28);
         _btnBrowse.TabIndex = 0;
-        _btnBrowse.Text = "Browse Files...";
+        _btnBrowse.Text = "Add File";
         _btnBrowse.Click += Upload_Browse;
         // 
         // _btnBrowseFolder
@@ -109,7 +117,7 @@ partial class UploadTab
         _btnBrowseFolder.Name = "_btnBrowseFolder";
         _btnBrowseFolder.Size = new Size(116, 28);
         _btnBrowseFolder.TabIndex = 1;
-        _btnBrowseFolder.Text = "Browse Folder...";
+        _btnBrowseFolder.Text = "Add Folder";
         _btnBrowseFolder.Click += Upload_BrowseFolder;
         // 
         // _btnIcon
@@ -146,8 +154,18 @@ partial class UploadTab
         _upAdd.Size = new Size(72, 26);
         _upAdd.Anchor = AnchorStyles.Top | AnchorStyles.Right;
         _upAdd.TabIndex = 5;
-        _upAdd.Text = "Add";
-        _upAdd.Click += Upload_AddFiles;
+        _upAdd.Text = "Add \u25BE";
+        _upAdd.Click += Upload_AddMenu;
+        // 
+        // _addMenu
+        // 
+        _addMenu.Items.AddRange(new ToolStripItem[] { _addSingleFile, _addMultipleFiles, _addFolderItem });
+        _addSingleFile.Text = "Single File";
+        _addSingleFile.Click += Upload_AddSingleFile;
+        _addMultipleFiles.Text = "Multiple Files";
+        _addMultipleFiles.Click += Upload_AddMultipleFiles;
+        _addFolderItem.Text = "Add Folder";
+        _addFolderItem.Click += Upload_AddFolder;
         // 
         // _upEdit
         // 
@@ -328,11 +346,11 @@ partial class UploadTab
         // 
         // tooltips
         // 
-        _tips.SetToolTip(_btnBrowse, "Pick the save file(s) to upload");
-        _tips.SetToolTip(_btnBrowseFolder, "Pick a save folder to upload");
+        _tips.SetToolTip(_btnBrowse, "Start a new upload from a save file");
+        _tips.SetToolTip(_btnBrowseFolder, "Start a new upload from a save folder");
         _tips.SetToolTip(_btnIcon, "Pick a cover image for this game (shown on the right)");
         _tips.SetToolTip(_btnDetect, "Detect the title id / game name from the selected save");
-        _tips.SetToolTip(_upAdd, "Add more file(s) to this upload");
+        _tips.SetToolTip(_upAdd, "Add a single file, multiple files, or a folder to this upload");
         _tips.SetToolTip(_upEdit, "Rename this upload (edits the Game Name)");
         _tips.SetToolTip(_upRemove, "Remove the selected file from this upload");
         _tips.SetToolTip(_upGameName, "Shown in your library; required for PC save folders");

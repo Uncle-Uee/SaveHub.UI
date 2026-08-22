@@ -146,9 +146,32 @@ public sealed partial class UploadViewModel : ViewModelBase
     }
 
     [RelayCommand]
+    private async Task AddSingleFile()
+    {
+        IReadOnlyList<string> files = await _shell.PickFilesAsync("Add a save file", false, null, null);
+        AddToUpload(files);
+    }
+
+    [RelayCommand]
     private async Task AddFiles()
     {
         IReadOnlyList<string> files = await _shell.PickFilesAsync("Add save file(s)", true, null, null);
+        AddToUpload(files);
+    }
+
+    [RelayCommand]
+    private async Task AddFolder()
+    {
+        string? folder = await _shell.PickFolderAsync("Add a save folder");
+        if (folder is null)
+        {
+            return;
+        }
+        AddToUpload(Directory.GetFiles(folder, "*", SearchOption.AllDirectories));
+    }
+
+    private void AddToUpload(IReadOnlyList<string> files)
+    {
         if (files.Count == 0)
         {
             return;

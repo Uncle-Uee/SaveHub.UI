@@ -35,6 +35,8 @@
                     <TextBox Text="{Binding Token}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
                 </StackPanel>
                 <CheckBox Content="Auto-merge pull requests" IsChecked="{Binding AutoMerge}" Margin="118,0,0,0"/>
+                <TextBlock Margin="118,2,0,0" Foreground="Gray" TextWrapping="Wrap" MaxWidth="420"
+                           Text="Private repo? Use a classic token with the 'repo' scope, or a fine-grained token with Contents and Pull requests (Read and write) on that repo."/>
             </StackPanel>
 
             <!-- GitLab -->
@@ -60,6 +62,8 @@
                     <TextBox Text="{Binding GitLabToken}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
                 </StackPanel>
                 <CheckBox Content="Auto-merge (needs Maintainer)" IsChecked="{Binding GitLabAutoMerge}" Margin="118,0,0,0"/>
+                <TextBlock Margin="118,2,0,0" Foreground="Gray" TextWrapping="Wrap" MaxWidth="420"
+                           Text="Private project? A personal access token with the 'api' scope covers it (role Developer or above; Maintainer to auto-merge)."/>
             </StackPanel>
 
             <!-- Bitbucket -->
@@ -85,6 +89,8 @@
                     <TextBox Text="{Binding BitbucketAppPassword}" Width="300" PasswordChar="●" PlaceholderText="Leave blank to keep current"/>
                 </StackPanel>
                 <CheckBox Content="Auto-merge (needs write access)" IsChecked="{Binding BitbucketAutoMerge}" Margin="118,0,0,0"/>
+                <TextBlock Margin="118,2,0,0" Foreground="Gray" TextWrapping="Wrap" MaxWidth="420"
+                           Text="Private repo? Create an app password with Repositories (Read, Write) and Pull requests (Read, Write)."/>
             </StackPanel>
 
             <!-- Supabase -->

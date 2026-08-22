@@ -226,22 +226,56 @@ internal sealed partial class UploadTab : UserControl, ITabView
         Persist();
     }
 
-    private void Upload_AddFiles(object? sender, EventArgs e)
+    private void Upload_AddMenu(object? sender, EventArgs e)
+    {
+        _addMenu.Show(_upAdd, new System.Drawing.Point(0, _upAdd.Height));
+    }
+
+    private void Upload_AddSingleFile(object? sender, EventArgs e)
+    {
+        using OpenFileDialog dialog = new OpenFileDialog { Multiselect = false, Title = "Add a save file" };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+        AddFilesToUpload(dialog.FileNames);
+    }
+
+    private void Upload_AddMultipleFiles(object? sender, EventArgs e)
     {
         using OpenFileDialog dialog = new OpenFileDialog { Multiselect = true, Title = "Add save file(s)" };
         if (dialog.ShowDialog(this) != DialogResult.OK)
         {
             return;
         }
+        AddFilesToUpload(dialog.FileNames);
+    }
+
+    private void Upload_AddFolder(object? sender, EventArgs e)
+    {
+        using FolderBrowserDialog dialog = new FolderBrowserDialog { Description = "Add a save folder" };
+        if (dialog.ShowDialog(this) != DialogResult.OK)
+        {
+            return;
+        }
+        AddFilesToUpload(Directory.GetFiles(dialog.SelectedPath, "*", SearchOption.AllDirectories));
+    }
+
+    private void AddFilesToUpload(IReadOnlyList<string> paths)
+    {
+        if (paths.Count == 0)
+        {
+            return;
+        }
         if (SelectedSaveType() == SaveType.MemoryCard)
         {
-            AddCardFiles(dialog.FileNames);
+            AddCardFiles(paths);
             PopulateList();
             SelectItem(_items.Count > 0 ? _items[^1] : null);
         }
         else if (_current is not null)
         {
-            _current.Files.AddRange(dialog.FileNames);
+            _current.Files.AddRange(paths);
             RefreshRow(_current);
             _upPath.Text = ItemDetails(_current);
         }
